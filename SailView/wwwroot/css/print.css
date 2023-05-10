@@ -1,0 +1,28 @@
+﻿@media print {
+    /* Hide all elements except MudTable */
+    body * {
+        visibility: hidden;
+    }
+
+    /* Show MudTable and its parent elements */
+    mud-table,
+    mud-table * {
+        visibility: visible;
+    }
+
+    /* Set the table to 100% width */
+    mud-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+        /* Set the font size and other styling for print */
+        mud-table,
+        mud-table th,
+        mud-table td {
+            font-size: 14px;
+            font-family: Arial, sans-serif;
+            border: 1px solid black;
+            padding: 8px;
+        }
+}

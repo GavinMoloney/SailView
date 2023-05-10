@@ -1,0 +1,51 @@
+﻿@page "/deleteboats/{id}"
+@attribute [Authorize]
+@using SailView.Services;
+@using SailView.Data.Models;
+@using System.Text.RegularExpressions
+@using System.ComponentModel.DataAnnotations
+@inject BoatService boatService;
+@inject NavigationManager NavigationManager;
+@inject ISnackbar SnackBar;
+
+<PageTitle> Delete Boat </PageTitle>
+
+<h3>Delete Boat</h3>
+<br/>
+
+
+
+<EditForm Model=@boat OnValidSubmit="HandleSubmit">
+    <DataAnnotationsValidator />
+    <MudCard>
+        <MudCardContent>
+            <h3>Are you sure you want to delete @boat.BoatName with sail number @boat.SailNumber ?</h3>
+            <MudTextField Label="ID" @bind-Value="@boat.Id" Variant="Variant.Text"></MudTextField>
+            <MudTextField Label="Boat Name" @bind-Value="@boat.BoatName" Variant="Variant.Text"></MudTextField>
+            <MudTextField Label="Sail Number" @bind-Value="@boat.SailNumber" Variant="Variant.Text"></MudTextField>
+            <MudTextField Label="Class" @bind-Value="@boat.BoatType" Variant="Variant.Text"></MudTextField>
+            <MudSpacer />
+            <br />
+            <MudButton Variant="Variant.Filled" Color="Color.Secondary" ButtonType="ButtonType.Submit">Delete</MudButton>
+            <MudButton Variant="Variant.Filled" Color="Color.Default" Href="Boats">Cancel</MudButton>
+        </MudCardContent>
+    </MudCard>
+</EditForm>
+
+@code {
+    [Parameter]
+    public string Id { get; set; }
+    BoatDetails boat = new BoatDetails();
+
+    protected async override Task OnInitializedAsync()
+    {
+        boat = boatService.GetBoatById(int.Parse(Id));
+    }
+    public void HandleSubmit()
+        {
+        boatService.RemoveBoatById(int.Parse(Id));
+        SnackBar.Add("Boat Deleted", Severity.Success);
+        NavigationManager.NavigateTo("Boats");
+    }
+
+}

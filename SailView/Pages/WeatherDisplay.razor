@@ -1,0 +1,332 @@
+﻿@using SailView.Data.Models.Weather.OpenWeather
+@using SailView.Data.Models.Weather
+@using SailView.Data.Models.Weather.OpenWeather.Forecast
+@using SailView.Pages
+@inject ISnackbar Snackbar
+@inject IJSRuntime JSRuntime
+
+
+
+<MudCard>
+    <MudCardContent>
+        <h2 class="d-inline me-2">Current conditions for @Weather.Location.name</h2>
+        <WeatherCard WeatherDescription="@Weather.CurrentWeather.weather.First().main"
+                     Temperature="@Weather.CurrentWeather.main.temp"
+                     TemperatureFeelsLike="@Weather.CurrentWeather.main.feels_like"
+                     TemperatureMax="@Weather.CurrentWeather.main.temp_max"
+                     TemperatureMin="@Weather.CurrentWeather.main.temp_min"
+                     Humidity="@Weather.CurrentWeather.main.humidity"
+                     WindSpeed="@convertToKnots(Weather.CurrentWeather.wind.speed)"
+                     WindDirection="@Weather.CurrentWeather.wind.deg"
+                     WindGust="@convertToKnots(Weather.CurrentWeather.wind.gust)" />
+    </MudCardContent>
+</MudCard>
+<br />
+<MudCard>
+    <MudCardContent>
+    <MudCardHeader><MudCardHeaderContent><h2>Forecast</h2></MudCardHeaderContent></MudCardHeader>
+        <div class="carousel" @ref="carouselRef">
+            <div class="carousel-item active">
+                <SfChart Title="Wind Forecast">
+                    <ChartPrimaryXAxis Title="Date" ValueType="Syncfusion.Blazor.Charts.ValueType.Category"></ChartPrimaryXAxis>
+                    <ChartPrimaryYAxis Title="Wind Speed (knots)"></ChartPrimaryYAxis>
+                    <ChartSeriesCollection>
+                        <ChartSeries DataSource="@WindSpeedChartData" Name="Wind Speed" XName="DateTime" YName="WindSpeed" Type="ChartSeriesType.Line">
+                            <ChartMarkerSettings Visible="true"></ChartMarkerSettings>
+                            <ChartTooltipSettings Enable="true"></ChartTooltipSettings>
+                        </ChartSeries>
+                        <ChartSeries DataSource="@WindSpeedChartData" Name="Wind Gust" XName="DateTime" YName="WindGust" Type="ChartSeriesType.Line">
+                            <ChartMarkerSettings Visible="true"></ChartMarkerSettings>
+                            <ChartTooltipSettings Enable="true"></ChartTooltipSettings>
+                        </ChartSeries>
+                    </ChartSeriesCollection>
+                    <ChartLegendSettings Visible="true" Position="LegendPosition.Top" />
+                </SfChart>
+            </div>
+
+            <div class="carousel-item">
+                <SfChart Title="Temperature Forecast">
+                    <ChartPrimaryXAxis Title="Date" ValueType="Syncfusion.Blazor.Charts.ValueType.Category"></ChartPrimaryXAxis>
+                    <ChartPrimaryYAxis Title="Temperature (°C)"></ChartPrimaryYAxis>
+                    <ChartSeriesCollection>
+                        <ChartSeries DataSource="@TempChartData" Name="Max Temperature" XName="DateTime" YName="TemperatureMax" Type="ChartSeriesType.Line">
+                            <ChartMarkerSettings Visible="true"></ChartMarkerSettings>
+                            <ChartTooltipSettings Enable="true"></ChartTooltipSettings>
+                        </ChartSeries>
+                        <ChartSeries DataSource="@TempChartData" Name="Min Temperature" XName="DateTime" YName="TemperatureMin" Type="ChartSeriesType.Line">
+                            <ChartMarkerSettings Visible="true"></ChartMarkerSettings>
+                            <ChartTooltipSettings Enable="true"></ChartTooltipSettings>
+                        </ChartSeries>
+                    </ChartSeriesCollection>
+                    <ChartLegendSettings Visible="true" Position="LegendPosition.Top" />
+                </SfChart>
+            </div>
+
+            
+            <div class="carousel-item">
+    <SfChart Title="Wind Direction Forecast">
+        <ChartPrimaryXAxis Title="Date" ValueType="Syncfusion.Blazor.Charts.ValueType.Category"></ChartPrimaryXAxis>
+        <ChartPrimaryYAxis Title="Wind Direction (degrees)"></ChartPrimaryYAxis>
+        <ChartSeriesCollection>
+            <ChartSeries DataSource="@WindDirectionChartDataList" Name="Wind Direction" XName="DateTime" YName="WindDirection" Type="ChartSeriesType.Polar">
+                <ChartMarkerSettings Visible="true"></ChartMarkerSettings>
+                <ChartTooltipSettings Enable="true"></ChartTooltipSettings>
+            </ChartSeries>
+        </ChartSeriesCollection>
+        <ChartLegendSettings Visible="true" Position="LegendPosition.Top" />
+    </SfChart>
+
+
+
+</div>
+</div>
+
+       
+        <MudGrid Justify="Justify.Center">
+            <MudItem>
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="PrevSlide">Previous</MudButton>
+            </MudItem>
+            <MudItem>
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="NextSlide">Next</MudButton>
+            </MudItem>
+        </MudGrid>
+        <br/>
+
+        @*MudCards with wind speeds*@
+        <div style="display: flex; justify-content: space-around;">
+            <MudCard style="width: 400px;">
+                <MudCardContent>
+                    <MudText Typo="Typo.h6">Day with Highest Wind Speed:</MudText>
+                    <MudText>@(DayWithHighestWindSpeed.Date.HasValue ? $"{DayWithHighestWindSpeed.Date.Value.ToString("dddd")} {DayWithHighestWindSpeed.Date.Value.Day}{(DayWithHighestWindSpeed.Date.Value.Day % 10 == 1 && DayWithHighestWindSpeed.Date.Value.Day != 11 ? "st" : DayWithHighestWindSpeed.Date.Value.Day % 10 == 2 && DayWithHighestWindSpeed.Date.Value.Day != 12 ? "nd" : DayWithHighestWindSpeed.Date.Value.Day % 10 == 3 && DayWithHighestWindSpeed.Date.Value.Day != 13 ? "rd" : "th")} {DayWithHighestWindSpeed.Date.Value.ToString("MMMM")}" : "N/A")</MudText>
+                        <MudText>@(DayWithHighestWindSpeed.Date.HasValue ? $"{DayWithHighestWindSpeed.WindSpeed} knots" : "N/A")</MudText>
+                    </MudCardContent>
+                </MudCard>
+                <MudCard style="width: 400px;">
+                    <MudCardContent>
+                        <MudText Typo="Typo.h6">Day with Lowest Wind Speed:</MudText>
+                        <MudText>@(DayWithLowestWindSpeed.Date.HasValue ? $"{DayWithLowestWindSpeed.Date.Value.ToString("dddd")} {DayWithLowestWindSpeed.Date.Value.Day}{(DayWithLowestWindSpeed.Date.Value.Day % 10 == 1 && DayWithLowestWindSpeed.Date.Value.Day != 11 ? "st" : DayWithLowestWindSpeed.Date.Value.Day % 10 == 2 && DayWithLowestWindSpeed.Date.Value.Day != 12 ? "nd" : DayWithLowestWindSpeed.Date.Value.Day % 10 == 3 && DayWithLowestWindSpeed.Date.Value.Day != 13 ? "rd" : "th")} {DayWithLowestWindSpeed.Date.Value.ToString("MMMM")}" : "N/A")</MudText>
+                        <MudText>@(DayWithLowestWindSpeed.Date.HasValue ? $"{DayWithLowestWindSpeed.WindSpeed} knots" : "N/A")</MudText>
+                    </MudCardContent>
+                </MudCard>
+            </div>
+            <br/>
+            <div style="display: flex; justify-content: space-around;">
+                <MudCard style="width: 400px;">
+                    <MudCardContent>
+                        <MudText Typo="Typo.h6">Day with Highest Average Wind Speed:</MudText>
+                        <MudText>@(DayWithHighestAverageWindSpeed.Date.HasValue ? $"{DayWithHighestAverageWindSpeed.Date.Value.ToString("dddd")} {DayWithHighestAverageWindSpeed.Date.Value.Day}{(DayWithHighestAverageWindSpeed.Date.Value.Day % 10 == 1 && DayWithHighestAverageWindSpeed.Date.Value.Day != 11 ? "st" : DayWithHighestAverageWindSpeed.Date.Value.Day % 10 == 2 && DayWithHighestAverageWindSpeed.Date.Value.Day != 12 ? "nd" : DayWithHighestAverageWindSpeed.Date.Value.Day % 10 == 3 && DayWithHighestAverageWindSpeed.Date.Value.Day != 13 ? "rd" : "th")} {DayWithHighestAverageWindSpeed.Date.Value.ToString("MMMM")}" : "N/A")</MudText>
+                        <MudText>@(DayWithHighestAverageWindSpeed.Date.HasValue ? $"{Math.Round(DayWithHighestAverageWindSpeed.WindSpeed, 2)} knots" : "N/A")</MudText>
+                    </MudCardContent>
+                </MudCard>
+                <MudCard style="width: 400px;">
+                    <MudCardContent>
+                        <MudText Typo="Typo.h6">Day with Lowest Average Wind Speed:</MudText>
+                        <MudText>@(DayWithLowestAverageWindSpeed.Date.HasValue ? $"{DayWithLowestAverageWindSpeed.Date.Value.ToString("dddd")} {DayWithLowestAverageWindSpeed.Date.Value.Day}{(DayWithLowestAverageWindSpeed.Date.Value.Day % 10 == 1 && DayWithLowestAverageWindSpeed.Date.Value.Day != 11 ? "st" : DayWithLowestAverageWindSpeed.Date.Value.Day % 10 == 2 && DayWithLowestAverageWindSpeed.Date.Value.Day != 12 ? "nd" : DayWithLowestAverageWindSpeed.Date.Value.Day % 10 == 3 && DayWithLowestAverageWindSpeed.Date.Value.Day != 13 ? "rd" : "th")} {DayWithLowestAverageWindSpeed.Date.Value.ToString("MMMM")}" : "N/A")</MudText>
+                        <MudText>@(DayWithLowestAverageWindSpeed.Date.HasValue ? $"{Math.Round(DayWithLowestAverageWindSpeed.WindSpeed, 2)} knots" : "N/A")</MudText>
+                    </MudCardContent>
+                </MudCard>
+
+            </div>
+
+            @*End*@
+
+
+
+        @foreach (var date in Weather.WeatherForecast.list.Select(l => l.dtDateTime.Date).Distinct())
+        {
+            <MudCardHeader>
+                <CardHeaderContent>
+                    <MudText Typo="Typo.h6">Weather forecast for @date.ToShortDateString()</MudText>
+                </CardHeaderContent>
+            </MudCardHeader>
+            <br />
+            <MudGrid>
+                @foreach (var item in Weather.WeatherForecast.list
+               .Where(l => l.dtDateTime.Date == date)
+               .OrderBy(l => l.dtDateTime))
+                {
+                    <MudItem xs="12" sm="6" md="4">
+                        <WeatherCard DateTime="@item.dtDateTime.ToString("HH:mm dd/MM/yy")"
+                             WeatherIconImgSrc="@item.weather.First().iconImgSrc"
+                             WeatherDescription="@item.weather.First().main"
+                             Temperature="@item.main.temp"
+                             TemperatureFeelsLike="@item.main.feels_like"
+                             TemperatureMax="@item.main.temp_max"
+                             TemperatureMin="@item.main.temp_min"
+                             Humidity="@item.main.humidity"
+                             WindSpeed="@convertToKnots(item.wind.speed)"
+                             WindDirection="@item.wind.deg"
+                             WindGust="@convertToKnots(item.wind.gust)" />
+                    </MudItem>
+                }
+            </MudGrid>
+        }
+    </MudCardContent>
+</MudCard>
+<br />
+<br />
+
+
+
+@code {
+    [Parameter] public WeatherDTO? Weather { get; set; }
+
+    private double convertToKnots(double speed)
+    {
+        return Math.Round(speed * 1.944);
+    }
+
+    public class WindDirectionChartData
+    {
+        public DateTime DateTime { get; set; }
+        public double WindDirection { get; set; }
+    }
+
+    private List<WindDirectionChartData> GetWindDirectionChartData()
+    {
+        return Weather.WeatherForecast.list.Select(item => new WindDirectionChartData
+            {
+                DateTime = item.dtDateTime,
+                WindDirection = item.wind.deg
+            }).ToList();
+    }
+
+    private List<WindDirectionChartData> WindDirectionChartDataList => GetWindDirectionChartData();
+
+    //highest and lowest wind days
+    private (DateTime? Date, double WindSpeed) DayWithHighestWindSpeed => Weather.WeatherForecast.list
+        .OrderByDescending(item => convertToKnots(item.wind.speed))
+        .Select(item => (item.dtDateTime.Date, convertToKnots(item.wind.speed)))
+        .FirstOrDefault();
+
+    private (DateTime? Date, double WindSpeed) DayWithLowestWindSpeed => Weather.WeatherForecast.list
+        .OrderBy(item => convertToKnots(item.wind.speed))
+        .Select(item => (item.dtDateTime.Date, convertToKnots(item.wind.speed)))
+        .FirstOrDefault();
+
+    //highest & lowest average wind days
+    private (DateTime? Date, double WindSpeed) DayWithHighestAverageWindSpeed => Weather.WeatherForecast.list
+    .GroupBy(item => item.dtDateTime.Date)
+    .Select(group => (Date: group.Key, WindSpeed: group.Average(item => convertToKnots(item.wind.speed))))
+    .OrderByDescending(item => item.WindSpeed)
+    .FirstOrDefault();
+
+    private (DateTime? Date, double WindSpeed) DayWithLowestAverageWindSpeed => Weather.WeatherForecast.list
+        .GroupBy(item => item.dtDateTime.Date)
+        .Select(group => (Date: group.Key, WindSpeed: group.Average(item => convertToKnots(item.wind.speed))))
+        .OrderBy(item => item.WindSpeed)
+        .FirstOrDefault();
+
+
+    private List<WindSpeedData> WindSpeedChartData =>
+    Weather.WeatherForecast.list.Select(item => new WindSpeedData
+        {
+            DateTime = item.dtDateTime.ToString("HH:mm dd/MM/yy"),
+            WindSpeed = convertToKnots(item.wind.speed),
+            WindGust = convertToKnots(item.wind.gust)
+        }).ToList();
+
+    public class WindSpeedData
+    {
+        public string DateTime { get; set; }
+        public double WindSpeed { get; set; }
+        public double WindGust { get; set; }
+    }
+
+    public class TemperatureData
+    {
+        public string DateTime { get; set; }
+        public double TemperatureMax { get; set; }
+        public double TemperatureMin { get; set; }
+    }
+
+    private List<TemperatureData> TempChartData =>
+    Weather.WeatherForecast.list.Select(item => new TemperatureData
+        {
+            DateTime = item.dtDateTime.ToString("HH:mm dd/MM/yy"),
+            TemperatureMax = item.main.temp_max,
+            TemperatureMin = item.main.temp_min
+        }).ToList();
+
+    //carousel
+    private ElementReference carouselRef;
+    private int currentSlideIndex = 0;
+    private async Task NextSlide()
+    {
+        await JSRuntime.InvokeVoidAsync("carouselInterop.nextSlide", carouselRef);
+    }
+
+    private async Task PrevSlide()
+    {
+        await JSRuntime.InvokeVoidAsync("carouselInterop.prevSlide", carouselRef);
+    }
+
+    public string windWarning(double windSpeed)
+    {
+        if (windSpeed < 22)
+        {
+            return "None";
+        }
+        else if (windSpeed >= 22 && windSpeed <= 33)
+        {
+            return "Small Craft Warning in Operation";
+        }
+        else if (windSpeed >= 34 && windSpeed <= 47)
+        {
+            return "Gale Warning in Operation, Yellow Alert";
+        }
+        else if (windSpeed >= 48 && windSpeed <= 55)
+        {
+            return "Storm Warning in Operation, Amber Alert";
+        }
+        else
+        {
+            return "Red Alert for Violent Storm or Hurricane";
+        }
+    }
+
+    //snackbar popup
+    private void CheckWeatherWarnings()
+    {
+        bool hasWarning = false;
+
+        foreach (var item in Weather.WeatherForecast.list)
+        {
+            double windSpeedKnots = convertToKnots(item.wind.speed);
+            string warning = windWarning(windSpeedKnots);
+
+            if (warning != "None")
+            {
+                hasWarning = true;
+                Snackbar.Configuration.PositionClass = Defaults.Classes.Position.BottomLeft;
+                Severity severity = Severity.Warning;
+                if (warning == "Red Alert for Violent Storm or Hurricane")
+                {
+                    severity = Severity.Error;
+                }
+
+                Snackbar.Add(warning, severity);
+                break;
+            }
+        }
+
+        if (!hasWarning)
+        {
+            Snackbar.Configuration.PositionClass = Defaults.Classes.Position.BottomLeft;
+            Snackbar.Add("No wind warnings forecast", Severity.Normal);
+        }
+    }
+
+
+    //load snackbar
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender)
+        {
+            CheckWeatherWarnings();
+        }
+    }
+
+
+
+}

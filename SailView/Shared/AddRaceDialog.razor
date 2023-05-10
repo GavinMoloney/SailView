@@ -1,0 +1,182 @@
+﻿@using SailView.DTOs
+@using SailView.Data.Models;
+@using SailView.Services;
+@using System.ComponentModel.DataAnnotations
+@using Microsoft.AspNetCore.Components.Forms
+@inject BoatService boatService;
+@inject IDialogService DialogService
+@inject ISnackbar SnackBar
+
+
+<EditForm Model="boatDetails" OnValidSubmit="AddBoatDetails" OnInvalidSubmit="FieldsErrorNotifacation">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+    <CustomValidator Validate="ValidateBoatDetails" />
+    <MudDialog Style="width:800px;max-width:800px;background-color:#F3F3F4;">
+        <TitleContent>
+            <MudText Typo="Typo.h6" Class="mb-2">
+                <MudIcon Icon="@Icons.Filled.AddBox" Class="mr-3" />
+                Add Boat Details
+            </MudText>
+        </TitleContent>
+        <DialogContent>
+            <MudGrid Style="overflow-y: scroll;max-height: 70vh;">
+                <MudItem xs="12">
+                    <MudCard Outlined="false" Style="height:100%;border-radius:20px;" Class="px-10" Elevation="0">
+                        <MudCardContent>
+@*                            <MudSelect @bind-Value="selectedBoatName" Label="Boat Name" Placeholder="Please Select" Variant="Variant.Outlined" Immediate AdornmentColor="Color.Primary" @oninput="@(e => OnSelectedBoatChanged(e.Value.ToString()))">
+                                @foreach (var boat in boatService.GetAllBoats())
+                                {
+                                    <MudSelectItem Value="@boat.BoatName">@boat.BoatName</MudSelectItem>
+                                }
+                            </MudSelect>*@
+@*                            <MudSelect @bind-Value="boatDetails.BoatName" For="()=>boatDetails.BoatName" Margin="Margin.Dense" Label="Boat Name" Placeholder="Please Select" Variant="Variant.Outlined" Immediate AdornmentColor="Color.Primary" @oninput="@(e => OnSelectedBoatChanged(boatDetails.BoatName))">
+                                @foreach (var boat in boatService.GetAllBoats())
+                                {
+                                    <MudSelectItem Value="@boat.BoatName">@boat.BoatName</MudSelectItem>
+                                }
+                            </MudSelect>*@
+
+
+
+                            <MudTextField @bind-Value="boatDetails.BoatName" For="()=>boatDetails.BoatName" Margin="Margin.Dense" Label="Boat Name" Variant="Variant.Outlined" Immediate></MudTextField>
+@*                            <MudSelect @bind-Value="boatDetails.BoatName" For="()=>boatDetails.BoatName" Margin="Margin.Dense" Label="Boat Name" Placeholder="Please Select" Variant="Variant.Outlined" Immediate AdornmentColor="Color.Primary">
+                                @foreach (var boat in boatService.GetAllBoats())
+                                {
+                                    <MudSelectItem Value="@boat.BoatName">@boat.BoatName</MudSelectItem>
+                                }
+                                </MudSelect>*@
+                            <MudTextField @bind-Value="boatDetails.SailNumber" For="()=>boatDetails.SailNumber" Margin="Margin.Dense" Label="Sail Number" Variant="Variant.Outlined" Immediate></MudTextField>
+                            <MudSelect @bind-Value="boatDetails.BoatType" For="()=>boatDetails.BoatType" Margin="Margin.Dense" Label="Type of Boat" Placeholder="Please Select" Variant="Variant.Outlined" Immediate AdornmentColor="Color.Primary">
+                                <MudSelectItem Value="@("1720")">1720</MudSelectItem>
+                                <MudSelectItem Value="@("Sloop")">Sloop</MudSelectItem>
+                            </MudSelect>
+                            <MudNumericField @bind-Value="boatDetails.Position" For="@(()=>boatDetails.Position)" Margin="Margin.Dense" Label="Finishing Position" Variant="Variant.Outlined" Min="0" Immediate></MudNumericField>
+                            <MudTextField @bind-Value="boatDetails.TimingRecord" For="@(()=>boatDetails.TimingRecord)" Margin="Margin.Dense" Label="Finishing Time" Variant="Variant.Outlined"></MudTextField>
+                            <MudSelect @bind-Value="boatDetails.FinishingStatus" For="()=>boatDetails.FinishingStatus" Margin="Margin.Dense" Label="Status" Placeholder="Please Select" Variant="Variant.Outlined" Immediate AdornmentColor="Color.Primary">
+                                <MudSelectItem Value="@("Finished")">Finished</MudSelectItem>
+                                <MudSelectItem Value="@("DNF")">DNF</MudSelectItem>
+                                <MudSelectItem Value="@("OCS")">OCS</MudSelectItem>
+                                <MudSelectItem Value="@("DNS")">DNS</MudSelectItem>
+                                <MudSelectItem Value="@("DNC")">DNC</MudSelectItem>
+                                <MudSelectItem Value="@("RTD")">RTD</MudSelectItem>
+                            </MudSelect>
+                        </MudCardContent>
+                    </MudCard>
+                </MudItem>
+            </MudGrid>
+        </DialogContent>
+        <DialogActions>
+            <MudButton Variant="Variant.Filled" Class="mt-2" OnClick="Cancel">Cancel</MudButton>
+            <MudButton Color="Color.Primary" Class="mt-2" Variant="Variant.Filled" ButtonType="MudBlazor.ButtonType.Submit">Add Boat</MudButton>
+        </DialogActions>
+    </MudDialog>
+</EditForm>
+
+<MudSnackbarElement @ref="snack"></MudSnackbarElement>
+
+@code {
+    private MudSnackbarElement snack;
+    public BoatRaceDTO boatDetails { get; set; } = new();
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+    private EditContext editContext;
+
+    private string selectedBoatName;
+
+    private void OnSelectedBoatChanged(string selectedBoatName)
+    {
+        var selectedBoat = boatService.GetAllBoats().FirstOrDefault(b => b.BoatName == selectedBoatName);
+        if (selectedBoat != null)
+        {
+            boatDetails.SailNumber = selectedBoat.SailNumber;
+            boatDetails.BoatType = selectedBoat.BoatType;
+        }
+    }
+
+    private void LoadBoatDetails(object value)
+    {
+        string selectedBoatName = (string)value;
+        var selectedBoat = boatService.GetAllBoats().FirstOrDefault(boat => boat.BoatName == selectedBoatName);
+
+        if (selectedBoat != null)
+        {
+            boatDetails.SailNumber = selectedBoat.SailNumber;
+            boatDetails.BoatType = selectedBoat.BoatType;
+        }
+    }
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        editContext = new EditContext(boatDetails);
+        
+    }
+
+    private async void AddBoatDetails()
+    {
+        MudDialog.Close(DialogResult.Ok(boatDetails));
+    }
+
+    private void Cancel()
+    {
+        MudDialog.Cancel();
+    }
+
+    private void FieldsErrorNotifacation()
+    {
+        SnackBar.Add("All Fields Must Be Entered Correctly!", Severity.Error);
+    }
+
+    private string ValidateBoatDetails()
+    {
+        var selectedBoat = boatService.GetAllBoats().FirstOrDefault(b => b.BoatName == boatDetails.BoatName);
+        if (selectedBoat != null)
+        {
+            if (selectedBoat.SailNumber != boatDetails.SailNumber || selectedBoat.BoatType != boatDetails.BoatType)
+            {
+                return "The selected Boat Type and Sail Number do not match the saved values for the selected Boat Name.";
+            }
+        }
+
+        return null;
+    }
+
+
+    public class CustomValidator : ComponentBase, IDisposable
+    {
+        [CascadingParameter] EditContext EditContext { get; set; }
+        [Parameter] public Func<string> Validate { get; set; }
+
+        private ValidationMessageStore _messageStore;
+
+        protected override void OnInitialized()
+        {
+            _messageStore = new ValidationMessageStore(EditContext);
+            EditContext.OnValidationRequested += HandleValidationRequested;
+            EditContext.OnFieldChanged += HandleFieldChanged;
+        }
+
+        private void HandleValidationRequested(object sender, ValidationRequestedEventArgs e)
+        {
+            _messageStore.Clear();
+            var validationResult = Validate();
+            if (validationResult != null)
+            {
+                _messageStore.Add(new FieldIdentifier(EditContext.Model, string.Empty), validationResult);
+                EditContext.NotifyValidationStateChanged();
+            }
+        }
+
+        private void HandleFieldChanged(object sender, FieldChangedEventArgs e)
+        {
+            EditContext.NotifyValidationStateChanged();
+        }
+
+        public void Dispose()
+        {
+            EditContext.OnValidationRequested -= HandleValidationRequested;
+            EditContext.OnFieldChanged -= HandleFieldChanged;
+        }
+    }
+
+}

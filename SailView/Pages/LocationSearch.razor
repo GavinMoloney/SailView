@@ -1,0 +1,57 @@
+﻿@using SailView.Data.Models.Weather
+@using SailView.Services.Interfaces
+
+<h2>Check Local Weather Conditions</h2>
+<br/>
+<EditForm Model="@locationSearch" OnValidSubmit="@HandleValidSubmit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+    <MudCard>
+        <MudCardContent>
+
+            <p>
+                <label>
+                    Enter A Location
+                    <MudTextField @bind-Value="locationSearch.Location" Label="Location" Variant="Variant.Text"></MudTextField>
+                    <br />
+                </label>
+            </p>
+
+            <p>
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" ButtonType="ButtonType.Submit">Search</MudButton>
+
+            </p>
+        </MudCardContent>
+    </MudCard>
+
+</EditForm>
+
+@if (locations != null)
+{
+    <LocationSelect Locations="locations"
+                OnSelectLocation="HandleOnSelectLocation" />
+}
+
+@code {
+    [Inject] IOpenWeatherService OpenWeatherService { get; set; }
+    [Parameter] public EventCallback<LocationDTO> OnSelectLocation { get; set; }
+    [Parameter] public LocationDTO? PreselectedLocation { get; set; }
+
+
+    LocationSearchDTO locationSearch = new();
+    IEnumerable<LocationDTO>? locations;
+
+    protected override void OnParametersSet()
+    {
+    if (PreselectedLocation != null)
+    {
+        locationSearch.Location = PreselectedLocation.name;
+    }
+}
+
+    private async Task HandleValidSubmit() =>
+        locations = await OpenWeatherService.GetLocations(locationSearch);
+
+    private async Task HandleOnSelectLocation(LocationDTO location) =>
+        await OnSelectLocation.InvokeAsync(location);
+}

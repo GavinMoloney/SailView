@@ -1,0 +1,65 @@
+﻿@page "/geolocation"
+@attribute [Authorize]
+@using Microsoft.JSInterop
+@implements IAsyncDisposable
+
+<h3>GeoLocation</h3>
+
+<button @onclick=@GetLocationAsync>Get Location</button>
+
+@if (geoCoordinates is not null)
+{
+    <div>
+        Latitude : @geoCoordinates.Latitude <br />
+        Longitude : @geoCoordinates.Longitude<br />
+        Accuracy : @geoCoordinates.Accuracy
+    </div>
+}
+
+@code {
+    private readonly Lazy<Task<IJSObjectReference>> moduleTask = default!;
+    private readonly DotNetObjectReference<GeoLocation> dotNetObjectReference;
+    private GeoCoordinates? geoCoordinates = null;
+
+    [Inject]
+    private IJSRuntime jsRuntime { get; set; } = default!;
+
+    public GeoLocation()
+    {
+        moduleTask = new(() => jsRuntime!.InvokeAsync<IJSObjectReference>(
+            identifier: "import",
+            args: "./scripts/geoLocationJsInterop.js")
+        .AsTask());
+
+        dotNetObjectReference = DotNetObjectReference.Create(this);
+    }
+
+    public async Task GetLocationAsync()
+    {
+        var module = await moduleTask.Value;
+        await module.InvokeVoidAsync(identifier: "getCurrentPosition", dotNetObjectReference);
+    }
+
+    [JSInvokable]
+    public async Task OnSuccessAsync(GeoCoordinates geoCoordinates)
+    {
+        this.geoCoordinates = geoCoordinates;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (moduleTask.IsValueCreated)
+        {
+            var module = await moduleTask.Value;
+            await module.DisposeAsync();
+        }
+    }
+
+    public class GeoCoordinates
+    {
+        public double Latitude { get; set; }
+        public double Longitude { get; set; }
+        public double Accuracy { get; set; }
+    }
+}

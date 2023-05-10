@@ -1,0 +1,67 @@
+﻿@page "/deleterace/{id}"
+@attribute [Authorize]
+@using SailView.Services;
+@using SailView.Data.Models;
+@using System.Text.RegularExpressions
+@using System.ComponentModel.DataAnnotations
+@inject RaceService raceService;
+@inject NavigationManager NavigationManager;
+
+<PageTitle> Delete Race </PageTitle>
+
+<h3>Delete Race</h3>
+<br />
+
+<EditForm Model=@race OnValidSubmit="HandleSubmit">
+    <MudCard>
+        <MudCardContent>
+            <h3>Are you sure you want to delete race @race.RaceId</h3>
+            <br />
+            <div class="row">
+                <div class="col-md-8">
+                <div class="form-group">
+                    <p>Details:</p>
+                    <br />
+                    <label>Race Id:</label>
+                    <label>@race.RaceId</label>
+                </div>
+                <div class="form-group">
+                    <label>Race:</label>
+                    <label>@theRace.RaceId</label>
+                </div>
+                <div class="form-group">
+                    <label>On Date:</label>
+                    <label>@theRace.CreatedDate</label>
+                </div>
+                <br />
+                 <div class="form-group">
+                    <MudButton Variant="Variant.Filled" Color="Color.Secondary" ButtonType="ButtonType.Submit">Delete Boat</MudButton>
+                    <MudButton Variant="Variant.Filled" Color="Color.Default" Href="RaceList">Cancel</MudButton>
+                </div>
+                </div>
+            </div>
+
+        </MudCardContent>
+    </MudCard>
+</EditForm>
+
+
+@code {
+    List<BoatRaces> raceList { get; set; }
+
+    [Parameter]
+    public string Id { get; set; }
+    BoatRaces race = new BoatRaces();
+    Races theRace = new Races();
+
+    protected async override Task OnInitializedAsync()
+    {
+        race = raceService.GetRaceById(int.Parse(Id));
+    }
+    public void HandleSubmit()
+    {
+        raceService.DeleteRaceById(int.Parse(Id));
+        NavigationManager.NavigateTo("RaceList");
+    }
+
+}

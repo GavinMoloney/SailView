@@ -1,0 +1,50 @@
+﻿
+@*AuthorizeView makes menu item only visible on login*@
+
+<MudNavMenu>
+    <MudNavLink Href="/" Match="NavLinkMatch.All">Home</MudNavLink>
+ 
+    <AuthorizeView>
+       <MudNavGroup Title="Boats" Expanded="false">
+           <MudNavLink Href="/boats" Match="NavLinkMatch.Prefix">Boat List</MudNavLink>
+           <MudNavLink Href="/addboats" Match="NavLinkMatch.Prefix">Add Boat</MudNavLink>
+            <MudNavLink Href="/results" Match="NavLinkMatch.Prefix">Results History</MudNavLink>
+        </MudNavGroup>
+
+        <MudNavGroup Title="Individual Races" Expanded="false">
+            <MudNavGroup Title="One Design" Expanded="false">
+                <MudNavLink Href="/racelist" Match="NavLinkMatch.Prefix">One Design Race List</MudNavLink>
+                <MudNavLink Href="/newrace" Match="NavLinkMatch.Prefix">New One Design Race</MudNavLink>
+            </MudNavGroup>
+            <MudNavGroup Title="Mixed Design" Expanded="false">
+                <MudNavLink Href="/pyracelist" Match="NavLinkMatch.Prefix">Mixed Design Race List</MudNavLink>
+                <MudNavLink Href="/newpyrace" Match="NavLinkMatch.Prefix">New Mixed Design Race</MudNavLink>
+            </MudNavGroup>
+        </MudNavGroup>
+
+        <MudNavGroup Title="Race Series" Expanded="false">
+            <MudNavGroup Title="One Design" Expanded="false">
+                <MudNavLink Href="/seriesresults" Match="NavLinkMatch.Prefix">One Design Series List</MudNavLink>
+                <MudNavLink Href="/createseries" Match="NavLinkMatch.Prefix">New One Design Series</MudNavLink>
+            </MudNavGroup>
+            <MudNavGroup Title="Mixed Design" Expanded="false">
+                <MudNavLink Href="/mixedresults" Match="NavLinkMatch.Prefix">Mixed Design Series List</MudNavLink>
+                <MudNavLink Href="/newmixedseries" Match="NavLinkMatch.Prefix">New Mixed Design Series</MudNavLink>
+            </MudNavGroup>
+        </MudNavGroup>
+
+        <MudNavLink Href="/weather" Match="NavLinkMatch.Prefix">Weather</MudNavLink>
+        <MudNavLink Href="/tides" Match="NavLinkMatch.Prefix">Tides</MudNavLink>
+        
+    </AuthorizeView>
+@*    <MudNavGroup Title="Settings" Expanded="false">
+        <MudNavLink Href="/users" Match="NavLinkMatch.Prefix">Users</MudNavLink>
+        <MudNavLink Href="/security" Match="NavLinkMatch.Prefix">Security</MudNavLink>
+    </MudNavGroup>*@
+    <MudNavLink Href="/about" Match="NavLinkMatch.Prefix">About</MudNavLink>
+</MudNavMenu>
+
+@code {
+
+}
+

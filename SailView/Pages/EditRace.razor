@@ -1,0 +1,62 @@
+﻿@page "/editrace/{id}"
+@attribute [Authorize]
+@using SailView.Services;
+@using SailView.Data.Models;
+@using System.Text.RegularExpressions
+@using System.ComponentModel.DataAnnotations
+@inject BoatService boatService;
+@inject RaceService raceService;
+@inject NavigationManager NavigationManager;
+
+<PageTitle> Edit Race </PageTitle>
+
+<br />
+
+<h3>Edit Race</h3>
+
+<br />
+<br/>
+
+<EditForm Model="race" OnValidSubmit="HandleSubmit">
+    <DataAnnotationsValidator />
+    <MudCard>
+        <MudCardContent>
+            <MudTextField Label="Race ID" @bind-Value="race.RaceId" Variant="Variant.Text"></MudTextField>
+            <MudTextField Label="Boat ID" @bind-Value="race.BoatId" Variant="Variant.Text"></MudTextField>
+            <!--<MudTextField Label="Boat Name" @bind-Value="boat.BoatName" Variant="Variant.Text"></MudTextField>-->
+            <MudTextField Label="Time" @bind-Value="race.TimingRecord" Variant="Variant.Text"></MudTextField>
+            <MudTextField Label="Position" @bind-Value="race.Position" Variant="Variant.Text"></MudTextField>
+            <MudSelect Label="Finishing Status" @bind-Value="race.FinishingStatus">
+                  <MudSelectItem Value="@("Finished")">Finished</MudSelectItem>
+                  <MudSelectItem Value="@("DNF")">DNF</MudSelectItem>
+                  <MudSelectItem Value="@("OCS")">OCS</MudSelectItem>
+                  <MudSelectItem Value="@("DNS")">DNS</MudSelectItem>
+                  <MudSelectItem Value="@("DNC")">DNC</MudSelectItem>
+                  <MudSelectItem Value="@("RTD")">RTD</MudSelectItem> 
+            </MudSelect>
+            <br />
+            <MudButton Variant="Variant.Filled" Color="Color.Secondary" ButtonType="ButtonType.Submit">Update</MudButton>
+            <MudButton Variant="Variant.Filled" Color="Color.Default" Href="RaceList">Cancel</MudButton>
+        </MudCardContent>
+    </MudCard>
+</EditForm>
+
+@code {
+    //private List<Races>? races;
+    BoatDetails boat = new BoatDetails();
+
+    [Parameter]
+    public string Id { get; set; }
+    BoatRaces race = new BoatRaces();
+
+    protected async override Task OnInitializedAsync()
+    {
+        race = raceService.GetRaceById(int.Parse(Id));
+    }
+    public void HandleSubmit()
+    {
+        raceService.EditRaceByID(race);
+        NavigationManager.NavigateTo("RaceList");
+    }
+
+}

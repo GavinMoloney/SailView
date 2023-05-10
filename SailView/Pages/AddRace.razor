@@ -1,0 +1,71 @@
+﻿@page "/addrace"
+@using SailView.Services;
+@using SailView.Data.Models;
+@using System.Text.RegularExpressions
+@using System.ComponentModel.DataAnnotations
+@inject BoatService boatService;
+@inject RaceService raceService;
+@inject NavigationManager NavigationManager;
+@inject IDialogService DialogService
+@inject ISnackbar SnackBar
+@*
+
+                <MudTable Items="@race.BoatDetails" T="BoatDetails" Hover Striped Filter="new Func<BoatDetails,bool>(FilterFunc1)">
+                    <ToolBarContent>
+                        <MudText Typo="Typo.h6">Add Race</MudText>
+                        <MudSpacer />
+                        <MudTextField @bind-Value="searchString1" Placeholder="Search" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+                    </ToolBarContent>
+                    <HeaderContent>
+                        <MudTh>Boat Name</MudTh>
+                        <MudTh>Position</MudTh>
+                        <MudTh>Time</MudTh>
+                    </HeaderContent>
+                    <RowTemplate Context="boatDetails">
+                        <MudTd DataLabel="BoatName">@boatDetails.BoatName</MudTd>
+                        <MudTd DataLabel="BoatType">@boatDetails.BoatType</MudTd>
+                        <MudTd DataLabel="SailNumber">@boatDetails.SailNumber</MudTd>
+                    </RowTemplate>
+                    <PagerContent>
+                        <MudTablePager />
+                    </PagerContent>
+                </MudTable>
+
+
+@code {
+    Races race = new Races();
+
+    private string searchString1 = "";
+
+    private bool FilterFunc1(BoatDetails element) => FilterFunc(element, searchString1);
+
+    private bool FilterFunc(BoatDetails element, string searchString)
+    {
+        if (string.IsNullOrWhiteSpace(searchString))
+            return true;
+        if (element.BoatName.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+        if (element.BoatType.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+        if (element.SailNumber.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+        if ($"{element.Id}".Contains(searchString))
+            return true;
+        return false;
+    }
+
+    private async Task AddBoat()
+    {
+        var dialog = DialogService.Show<AddRaceDialog>("Add Boat");
+        var result = await dialog.Result;
+
+        if (!result.Cancelled)
+        {
+            BoatDetails boatDetails = (BoatDetails)result.Data;
+            race.BoatDetails.Add(boatDetails);
+            SnackBar.Add("Boat is added successfully", Severity.Success);
+        }
+    }
+
+}
+*@

@@ -1,0 +1,227 @@
+﻿@page "/"
+@using SailView.Data.Models.Weather
+@using SailView.Services
+@using SailView.Services.Interfaces
+@using SailView.Shared
+@using SailView.DTOs;
+@using SailView.Data.Models.Weather.OpenWeather
+@using System.Threading
+@using Syncfusion.Blazor.Charts
+@using Syncfusion.Blazor.Grids
+@using Syncfusion.Blazor.Layouts
+@using System.Threading.Tasks
+@inject IJSRuntime JSRuntime
+@inject RaceService raceService;
+@inject ResultService resultService;
+@inject BoatResultService boatResultService;
+@inject BoatService boatService;
+
+
+
+<PageTitle>SailView Home</PageTitle>
+
+<br/>
+
+
+<MudPaper Elevation="0" Class="pa-md-6 mx-lg-auto">
+    <h1 class="text-center">SailView Sailing Data</h1>
+</MudPaper>
+
+
+<MudCardContent Elevation="0" Class="pa-md-6 mx-lg-auto">
+    <AuthorizeView>
+        <NotAuthorized>
+            <h2><NavLink href="Identity/Account/Login">Login</NavLink> 
+                or 
+                <NavLink href="Identity/Account/Register">Register</NavLink> 
+                to Compute Race Data
+            </h2>
+        </NotAuthorized>
+    </AuthorizeView>
+</MudCardContent>
+
+<AuthorizeView>
+    <NotAuthorized>
+<MudContainer class="center-image-container">      
+    <MudImage Fluid="true" Width="600" Src="@selectedImageSrc" Alt="Boat Image" Class="rounded"/>  
+</MudContainer>
+    </NotAuthorized>
+</AuthorizeView>
+
+
+<AuthorizeView>
+<MudPaper Class="pa-16 ma-2">     
+    <!-- Total Sailing Time Panel -->
+    <MudText Typo="Typo.h6">Total Sailing Time</MudText>
+    <SfChart Title="Total Sailing Time">
+        <ChartPrimaryXAxis ValueType="Syncfusion.Blazor.Charts.ValueType.Category" Title="Boat Name">
+                    <ScrollSettings HorizontalOffset="100" VerticalOffset="50">
+    </ScrollSettings>
+        </ChartPrimaryXAxis>
+        <ChartPrimaryYAxis Title="Time (minutes)"></ChartPrimaryYAxis>
+            <ChartTooltipSettings Enable="true"></ChartTooltipSettings>
+            <ChartZoomSettings EnableSelectionZooming="true" EnablePinchZooming="true" EnableMouseWheelZooming="true" EnableScrollbar="true"
+                               Mode="Syncfusion.Blazor.Charts.ZoomMode.X">
+            </ChartZoomSettings>
+        <ChartSeriesCollection>
+            <ChartSeries DataSource="@BoatsWithRaceResults" XName="BoatName" YName="Statistics.TotalElapsedTime" Type="ChartSeriesType.Column" Name="Total Elapsed Time"></ChartSeries>
+            <ChartSeries DataSource="@BoatsWithRaceResults" XName="BoatName" YName="Statistics.TotalCorrectedTime" Type="ChartSeriesType.Column" Name="Total Corrected Time"></ChartSeries>
+        </ChartSeriesCollection>
+    </SfChart>
+    <br />
+
+    <MudText Typo="Typo.h6">Top 3 Boats</MudText>
+    <!-- Top 3 Boats Panel -->
+    <SfGrid DataSource="@TopThreeBoats" AllowSorting="true" Height="125">
+        <GridColumns>
+            <GridColumn Field=@nameof(BoatWithRaceResultsDTO.BoatName) HeaderText="Boat Name"></GridColumn>
+            <GridColumn Field=@nameof(BoatWithRaceResultsDTO.SailNumber) HeaderText="Sail Number"></GridColumn>
+            <GridColumn Field=@nameof(BoatWithRaceResultsDTO.BoatType) HeaderText="Class"></GridColumn>
+            <GridColumn Field=@nameof(BoatWithRaceResultsDTO.FirstPlaceFinishes) HeaderText="1st Place Finishes"></GridColumn>
+        </GridColumns>
+    </SfGrid>
+    <br />
+
+    <!-- Total Boats Panel -->
+
+    <MudText Typo="Typo.h6">Total Boats</MudText>
+    <SfChart Title="@($"Total Number of Boats: {TotalBoats}")">
+
+        <ChartPrimaryXAxis ValueType="Syncfusion.Blazor.Charts.ValueType.Category" Title="Boat Type"></ChartPrimaryXAxis>
+        <ChartPrimaryYAxis Title="Count"></ChartPrimaryYAxis>
+            <ChartTooltipSettings Enable="true"></ChartTooltipSettings>
+        <ChartSeriesCollection>
+            <ChartSeries DataSource="@BoatTypeCounts" XName="BoatType" YName="Count" Type="ChartSeriesType.Column" Name="Total Boats">
+            </ChartSeries>
+        </ChartSeriesCollection>
+    </SfChart>   
+</MudPaper>
+</AuthorizeView>
+
+@*weather removed for now*@
+@*@if (weather != null)
+{
+    <MudButton Variant="Variant.Filled" Color="Color.Primary" ButtonType="ButtonType.Submit" @onclick="() => weather = null" >Back to search</MudButton>
+
+    <WeatherDisplay Weather="weather" />
+
+}
+else
+{
+    <LocationSearch OnSelectLocation="HandleSelectLocation" />
+}*@
+<br/>
+
+
+
+
+@code {
+    //weather
+    [Inject] IOpenWeatherService OpenWeatherService { get; set; }
+
+    WeatherDTO? weather;
+
+    private async Task HandleSelectLocation(LocationDTO location) =>
+        weather = await OpenWeatherService.GetWeather(location);
+    //end weather
+
+
+    public int TotalBoats { get; set; }
+    private List<BoatWithRaceResultsDTO> BoatsWithRaceResults { get; set; }
+    private List<BoatWithRaceResultsDTO> TopThreeBoats => BoatsWithRaceResults?.OrderByDescending(b => b.FirstPlaceFinishes).Take(3).ToList() ?? new List<BoatWithRaceResultsDTO>();
+    private List<BoatTypeCount> BoatTypeCounts { get; set; }
+    private string selectedImageSrc;
+
+    private void ApplySearch()
+    {
+        StateHasChanged();
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await boatResultService.PopulateRaceResultsAsync();
+        BoatsWithRaceResults = await boatResultService.GetBoatsWithRaceResultsAsync() ?? new List<BoatWithRaceResultsDTO>();
+
+        foreach (var boat in BoatsWithRaceResults)
+        {
+            boat.Statistics = CalculateBoatStatistics(boat, boat.RaceResults);
+        }
+
+
+        CalculateBoatTypeCounts();
+
+    }
+
+    private BoatStatistics CalculateBoatStatistics(BoatWithRaceResultsDTO boat, List<SailView.Data.Models.RaceResults> raceResults)
+    {
+        BoatStatistics stats = new BoatStatistics();
+
+        if (raceResults != null && raceResults.Count > 0)
+        {
+            stats.BestPosition = raceResults.Min(r => r.Position);
+            stats.TotalElapsedTime = raceResults.Sum(r => r.ElapsedTime) / 60;
+            stats.TotalCorrectedTime = raceResults.Sum(r => r.CorrectedTime) / 60;
+            boat.FirstPlaceFinishes = raceResults.Count(r => r.Position == 1);
+        }
+
+        return stats;
+    }
+
+
+    //for dashboard
+    public class BoatTypeCount
+    {
+        public string BoatType { get; set; }
+        public int Count { get; set; }
+    }
+
+    private void CalculateBoatTypeCounts()
+    {
+        BoatTypeCounts = BoatsWithRaceResults.GroupBy(b => b.BoatType)
+                            .Select(g => new BoatTypeCount
+                                {
+                                    BoatType = g.Key,
+                                    Count = g.Count()
+                                }).ToList();
+        TotalBoats = BoatTypeCounts.Sum(b => b.Count);
+    }
+
+    //image list
+    private List<string> imageSources = new List<string>
+    {
+        "Images/sailview2.jpeg",
+        "Images/sailview3.jpeg",
+        "Images/sailview4.jpeg",
+        "Images/sailview5.jpeg",
+        "Images/sailview8.jpeg",
+        "Images/sailview9.jpeg",
+        "Images/sailview10.jpeg",
+        "Images/sailview11.jpeg",
+        "Images/sailview12.jpeg",
+        "Images/sailview14.jpeg",
+        "Images/sailview15.jpeg",
+        "Images/sailview20.jpeg",
+        "Images/sailview21.jpeg",
+        "Images/sailview22.jpeg",
+        "Images/sailview23.jpeg",
+        "Images/sailview24.jpeg",
+        "Images/sailview25.jpeg",
+        "Images/sailview26.jpeg",
+
+    };
+
+    //randomise images, onafterasync to stop flicker
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            var random = new Random();
+            selectedImageSrc = imageSources[random.Next(imageSources.Count)];
+            await JSRuntime.InvokeVoidAsync("eval", "setTimeout (() => { }, 0);");
+        }
+    }
+
+}
+
+
+

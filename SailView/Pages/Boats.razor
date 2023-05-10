@@ -1,0 +1,99 @@
+﻿@page "/boats"
+@attribute [Authorize]
+@using SailView.Services;
+@using SailView.Data.Models;
+@using SailView.Data;
+@inject BoatService boatService;
+@inject IJSRuntime JS
+@inject ExportService exportService
+@inject Microsoft.JSInterop.IJSRuntime JS
+@using System.IO;
+
+<br/>
+
+<MudButton Variant="Variant.Filled" Color="Color.Primary" Href="AddBoats">Add New Boat</MudButton>
+
+<br />
+<br/>
+
+<h1>Boat Database</h1>
+
+<br />
+ <h5>Click on boat name to view race history</h5>
+@if (boatDetails is null)
+{
+    <p><em>Loading...!</em></p>
+}
+else
+{
+    <MudTable Items="boatDetails" Hover Striped Filter="new Func<BoatDetails, bool>(FilterFunc1)" Breakpoint="Breakpoint.Sm">
+        <ToolBarContent>
+               <MudTextField @bind-Value="searchString1" Placeholder="Search For Boats" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+        </ToolBarContent>
+        <HeaderContent>
+            <MudTh>Boat Name</MudTh>
+            <MudTh>Sail Number</MudTh>
+            <MudTh>Class</MudTh>
+            <MudTh>Date Added</MudTh>
+            <MudTh>Edit</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="BoatName">
+            <a class="mud-primary-lighten-text" href="results?boatName=@context.BoatName">@context.BoatName</a>
+            </MudTd>
+            <MudTd DataLabel="SailNumber">@context.SailNumber</MudTd>
+            <MudTd DataLabel="Class">@context.BoatType</MudTd>
+            <MudTd DataLabel="Date">@context.CreatedDate</MudTd>
+            <MudTd>
+                <a class="nav-link" href=EditBoats/@context.Id>
+                    <span class="oi oi-pencil" aria-hidden="true"> Edit</span>
+                </a>
+            </MudTd>
+        </RowTemplate>
+        <PagerContent>
+            <MudTablePager />
+        </PagerContent>
+    </MudTable>
+}
+<br/>
+
+<MudButton Variant="Variant.Filled" Color="Color.Secondary" ButtonType="ButtonType.Submit" @onclick=@ExportToPdf>Export to PDF</MudButton>
+<br/>
+ 
+@code {
+
+    private string searchString1 = "";
+ 
+    private List<BoatDetails>? boatDetails;
+    protected override async Task OnInitializedAsync()
+    {
+        boatDetails = await Task.Run(() => boatService.GetAllBoats());
+ 
+    }
+
+    private bool FilterFunc1(BoatDetails element) => FilterFunc(element, searchString1);
+
+    private bool FilterFunc(BoatDetails element, string searchString)
+    {
+        if (string.IsNullOrWhiteSpace(searchString))
+            return true;
+        if (element.BoatName.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+        if (element.BoatType.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+        if (element.SailNumber.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+        if ($"{element.Id}".Contains(searchString))
+            return true;
+        return false;
+    }
+
+    protected async Task ExportToPdf()
+    {
+        using (MemoryStream excelStream = ExportService.CreatePdf(boatDetails))
+        {
+            await JS.SaveAs("Sample.pdf", excelStream.ToArray());
+        }
+    }
+ 
+}

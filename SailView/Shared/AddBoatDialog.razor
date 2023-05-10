@@ -1,0 +1,105 @@
+﻿@using SailView.DTOs
+@using SailView.Data.Models;
+@using SailView.Services;
+@using System.Linq;
+@inject BoatService boatService;
+@inject IDialogService DialogService
+@inject ISnackbar SnackBar
+
+<h3>Select Boat</h3>
+
+<EditForm Model="boatDetails" OnValidSubmit="AddBoatDetails" OnInvalidSubmit="FieldsErrorNotifacation">
+    <DataAnnotationsValidator />
+    <MudDialog Style="width:800px;max-width:800px;background-color:#F3F3F4;">
+        <TitleContent>
+            <MudText Typo="Typo.h6" Class="mb-2">
+                <MudIcon Icon="@Icons.Filled.AddBox" Class="mr-3" />
+                Select Boat
+            </MudText>
+        </TitleContent>
+        <DialogContent>
+            <MudGrid Style="overflow-y: scroll;max-height: 70vh;">
+                <MudItem xs="12">
+                    <MudCard Outlined="false" Style="height:100%;border-radius:20px;" Class="px-10" Elevation="0">
+                        <MudCardContent>
+                        <MudSelect @bind-Value="boatDetails.BoatName" For="()=>boatDetails.BoatName" Margin="Margin.Dense" Label="Boat Name" Placeholder="Please Select" Variant="Variant.Outlined" Immediate AdornmentColor="Color.Primary">
+                            @foreach (var boat in boatService.GetAllBoats().OrderBy(b => b.BoatName))
+                            {
+                                <MudSelectItem Value="@boat.BoatName">@boat.BoatName</MudSelectItem>
+                                
+                            }
+                       </MudSelect>
+                           <MudSelect @bind-Value="boatDetails.BoatType" For="()=>boatDetails.BoatType" Margin="Margin.Dense" Label="Type of Boat" Placeholder="Please Select" Variant="Variant.Outlined" Immediate AdornmentColor="Color.Primary">
+                                <MudSelectItem Value="@("1720")">1720</MudSelectItem>
+                                <MudSelectItem Value="@("Sloop")">Sloop</MudSelectItem>
+                            </MudSelect>
+                            <!--<MudTextField @bind-Value="boatDetails.BoatType" For="()=>boatDetails.BoatType" Margin="Margin.Dense" Label="Boat Type" Variant="Variant.Outlined" Immediate></MudTextField>-->
+                            <MudTextField @bind-Value="boatDetails.SailNumber" For="()=>boatDetails.SailNumber" Margin="Margin.Dense" Label="Sail Number" Variant="Variant.Outlined" Immediate></MudTextField>
+                        <MudNumericField @bind-Value="boatDetails.Position" For="()=>boatDetails.Position" Margin="Margin.Dense" Label="Finishing Position" Variant="Variant.Outlined" Min="0" Immediate></MudNumericField>
+                        <MudTextField @bind-Value="boatDetails.TimingRecord" For="()=>boatDetails.TimingRecord" Margin="Margin.Dense" Label="Finishing Time" Variant="Variant.Outlined"></MudTextField>
+                        <!--<MudTextField @bind-Value="boatDetails.FinishingStatus" For="()=>boatDetails.FinishingStatus" Margin="Margin.Dense" Label="Finishing Status" Variant="Variant.Outlined"></MudTextField>-->
+                        <MudSelect @bind-Value="boatDetails.FinishingStatus" For="()=>boatDetails.FinishingStatus" Margin="Margin.Dense" Label="Status" Placeholder="Please Select" Variant="Variant.Outlined" Immediate AdornmentColor="Color.Primary">
+                            <MudSelectItem Value="@("Finished")">Finished</MudSelectItem>
+                            <MudSelectItem Value="@("DNF")">DNF</MudSelectItem>
+                            <MudSelectItem Value="@("OCS")">OCS</MudSelectItem>
+                            <MudSelectItem Value="@("DNS")">DNS</MudSelectItem>
+                            <MudSelectItem Value="@("DNC")">DNC</MudSelectItem>
+                            <MudSelectItem Value="@("RTD")">RTD</MudSelectItem>
+                        </MudSelect>
+                            </MudCardContent>
+                    </MudCard>
+                </MudItem>
+            </MudGrid>
+            <MudButton Variant="Variant.Filled" Color="Color.Secondary" ButtonType="ButtonType.Reset">Reset</MudButton>
+            <MudButton Variant="Variant.Filled" Color="Color.Default" OnClick="Cancel">Cancel</MudButton>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" ButtonType="ButtonType.Submit">Select</MudButton>
+        </DialogContent>
+    </MudDialog>
+</EditForm>
+
+@code {
+
+    //private List<BoatDetails>? boats;
+    public BoatRaceDTO boatDetails { get; set; } = new();
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+    private EditContext editContext;
+
+    protected override async Task OnInitializedAsync()
+    {
+        //boats = await Task.Run(() => boatService.GetAllBoats());
+        editContext = new EditContext(boatDetails);
+
+    }
+
+    private async void AddBoatDetails()
+    {
+        MudDialog.Close(DialogResult.Ok(boatDetails));
+    }
+
+    private void Cancel()
+    {
+        MudDialog.Cancel();
+    }
+    private void FieldsErrorNotifacation()
+    {
+        SnackBar.Add("All Fields Must Be Entered Correctly!", Severity.Error);
+    }
+
+    //private string searchString1 = "";
+    //private bool FilterFunc1(BoatDetails element) => FilterFunc(element, searchString1);
+
+    //private bool FilterFunc(BoatDetails element, string searchString)
+    //{
+    //    if (string.IsNullOrWhiteSpace(searchString))
+    //        return true;
+    //    if (element.BoatName.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+    //        return true;
+    //    if (element.BoatType.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+    //        return true;
+    //    if (element.SailNumber.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+    //        return true;
+    //    if ($"{element.Id}".Contains(searchString))
+    //        return true;
+    //    return false;
+    //}
+}

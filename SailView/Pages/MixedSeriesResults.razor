@@ -1,0 +1,598 @@
+﻿@page "/mixedresults"
+@attribute [Authorize]
+@using SailView.DTOs;
+@using SailView.Data.Models;
+@using SailView.Data;
+@using SailView.Services;
+@inject IJSRuntime JSRuntime
+@inject Microsoft.JSInterop.IJSRuntime JS
+@using System.IO;
+@inject ExportService exportService
+@inject ResultService resultService
+@using Syncfusion.Pdf
+@using Syncfusion.Pdf.Graphics
+@using Syncfusion.Pdf.Grid
+@using Syncfusion.Drawing
+@using MudColor = MudBlazor.Color
+
+<br/>
+<h3>Mixed Design Series Results</h3>
+<br/>
+
+<MudSelect T="Series" Value="selectedSeries" ValueChanged="selectedChanged" Label="Select Race From List">
+	@foreach (var item in series)
+	{
+		if (SeriesContainsMultipleBoatTypes(item))
+		{
+			<MudSelectItem Value="@item">@item.Name</MudSelectItem>
+		}
+	}
+</MudSelect>
+@{
+	var orderedResults = BreakTiesForResults(resultDTOs.OrderBy(x => x.Points).ToList());
+}
+
+<MudTable Items="@orderedResults" Context="context" Hover="true" Breakpoint="Breakpoint.Sm">
+	<HeaderContent>
+		<MudTh>Finishing Position</MudTh>
+		<MudTh>Boat Name</MudTh>
+		<MudTh>Sail Number</MudTh>
+		<MudTh>Boat Class</MudTh>
+		<MudTh>Total Race Time</MudTh>
+		<MudTh>Total Corrected Time</MudTh>
+		<MudTh>PY Rating</MudTh>
+		<MudTh>Points</MudTh>
+	</HeaderContent>
+	<RowTemplate>
+		<MudTd DataLabel="Position">@((orderedResults.IndexOf(context) + 1).ToString())</MudTd>
+			<MudTd DataLabel="Name">@context.Name</MudTd>
+			<MudTd DataLabel="Sail Number">@context.SailNumber</MudTd>
+			<MudTd DataLabel="Class">@context.BoatType</MudTd>
+			<MudTd DataLabel="TotalRaceTime">@context.TotalRaceTime</MudTd>
+			<MudTd DataLabel="Corrected Time">
+				@TimeHelpers.CalculateCorrectedTime(context.BoatType, context.TotalRaceTime).ToString(@"hh\:mm\:ss")
+			</MudTd>
+			<MudTd DataLabel="PYRating">
+				@CalculatePYRating(context.BoatType)
+			</MudTd>
+			<MudTd DataLabel="Points">@context.Points</MudTd>
+		</RowTemplate>
+		<PagerContent>
+			<MudTablePager />
+		</PagerContent>
+	</MudTable>
+
+<br/>
+<SfChart Title="Points">
+    <ChartPrimaryXAxis ValueType="Syncfusion.Blazor.Charts.ValueType.Category" Title="Boat Name"></ChartPrimaryXAxis>
+    <ChartPrimaryYAxis Title="Points">
+        <ChartAxisLabelFormat Format="n0"></ChartAxisLabelFormat>
+    </ChartPrimaryYAxis>
+		<ChartTooltipSettings Enable="true"></ChartTooltipSettings>
+		<ChartLegendSettings Visible="true"></ChartLegendSettings>
+		<ChartZoomSettings EnableSelectionZooming="true" EnablePinchZooming="true" EnableMouseWheelZooming="true" EnableScrollbar="true"
+					   Mode="Syncfusion.Blazor.Charts.ZoomMode.X">
+		</ChartZoomSettings>
+    <ChartSeriesCollection>
+			<ChartSeries DataSource="@GetBoatPointsData().OrderByDescending(d => d.Points)" Name="Points" XName="BoatName" YName="Points" Type="ChartSeriesType.Bar">
+            <ChartMarker Visible="true">
+                <ChartMarkerDataLabel>
+                    <ChartDataLabelStyle Format="n0"></ChartDataLabelStyle>
+                </ChartMarkerDataLabel>
+            </ChartMarker>
+        </ChartSeries>
+    </ChartSeriesCollection>
+</SfChart>
+
+<br/>
+
+	<table>
+		<thead>
+			<tr>
+				<MudTh></MudTh>
+				<MudTh><b>Minimum</b></MudTh>
+				<MudTh><b>Maximum</b></MudTh>
+				<MudTh><b>Average</b></MudTh>
+				<MudTh><b>Median</b></MudTh>
+			</tr>
+		</thead>
+		<tbody>
+			<tr>
+				<MudTd><b>Corrected Time</b></MudTd>
+				<MudTd>@(resultDTOs.Any() ? $"{resultDTOs.OrderBy(x => x.CorrectedTime).First().Name} ({resultDTOs.OrderBy(x => x.CorrectedTime).First().SailNumber}) - {minCorrectedTime.ToString("N2")} minutes" : "N/A")</MudTd>
+				<MudTd>@(resultDTOs.Any() ? $"{resultDTOs.OrderByDescending(x => x.CorrectedTime).First().Name} ({resultDTOs.OrderByDescending(x => x.CorrectedTime).First().SailNumber}) - {maxCorrectedTime.ToString("N2")} minutes" : "N/A")</MudTd>
+				<MudTd>@averageCorrectedTimeFormatted minutes</MudTd>
+				<MudTd>@medianCorrectedTimeFormatted minutes</MudTd>
+			</tr>
+			<tr>
+				<MudTd><b>Elapsed Time</b></MudTd>
+				<MudTd>@(resultDTOs.Any() ? $"{resultDTOs.OrderBy(x => x.TotalRaceTime).First().Name} ({resultDTOs.OrderBy(x => x.TotalRaceTime).First().SailNumber}) - {minTotalRaceTimeTime.ToString("N2")} minutes" : "N/A")</MudTd>
+				<MudTd>@(resultDTOs.Any() ? $"{resultDTOs.OrderByDescending(x => x.TotalRaceTime).First().Name} ({resultDTOs.OrderByDescending(x => x.TotalRaceTime).First().SailNumber}) - {maxTotalRaceTimeTime.ToString("N2")} minutes" : "N/A")</MudTd>
+				<MudTd>@averageTotalRaceTimeFormatted minutes</MudTd>
+				<MudTd>@medianTotalRaceTimeTimeFormatted minutes</MudTd>
+			</tr>
+		</tbody>
+	</table>
+
+	<SfChart Title="Corrected vs Elapsed Time">
+    <ChartPrimaryXAxis Title="Boat Name" ValueType="Syncfusion.Blazor.Charts.ValueType.Category"></ChartPrimaryXAxis>
+    <ChartPrimaryYAxis Title="Time (Minutes)">
+        <ChartAxisLabelFormat Format="n2"></ChartAxisLabelFormat>
+    </ChartPrimaryYAxis>
+		<ChartTooltipSettings Enable="true"></ChartTooltipSettings>
+		<ChartLegendSettings Visible="true"></ChartLegendSettings>
+		<ChartZoomSettings EnableSelectionZooming="true" EnablePinchZooming="true" EnableMouseWheelZooming="true" EnableScrollbar="true"
+					   Mode="Syncfusion.Blazor.Charts.ZoomMode.X">
+		</ChartZoomSettings>
+    <ChartSeriesCollection>
+        <ChartSeries DataSource="@chartData.OrderByDescending(d => d.CorrectedTime)" Type="ChartSeriesType.Bar" Name="Total Corrected Time" XName="BoatName" YName="CorrectedTime">
+            <ChartMarker Visible="true">
+                <ChartMarkerDataLabel>
+                    <ChartDataLabelStyle Format="n2"></ChartDataLabelStyle>
+                </ChartMarkerDataLabel>
+            </ChartMarker>
+        </ChartSeries>
+			<ChartSeries DataSource="@chartData.OrderByDescending(d => d.CorrectedTime)" Type="ChartSeriesType.Bar" Name="Total Elapsed Time" XName="BoatName" YName="TotalRaceTime">
+				<ChartMarker Visible="true">
+                <ChartMarkerDataLabel>
+                    <ChartDataLabelStyle Format="n2"></ChartDataLabelStyle>
+                </ChartMarkerDataLabel>
+            </ChartMarker>
+        </ChartSeries>
+    </ChartSeriesCollection>
+	<ChartLegendSettings Visible="true"/>
+</SfChart>
+<br/>
+
+	@*<SfPdfExport @ref="PdfExportObj" />*@
+@*	<MudButton Variant="Variant.Filled" Color="MudColor.Secondary" OnClick="ExportToPdf">Export to PDF</MudButton>
+*@
+
+	@code {
+
+	private List<Series> series = new List<Series>();
+	private List<ResultDTO> resultDTOs = new List<ResultDTO>();
+	private Series selectedSeries = new Series();
+
+	//filter just for mixed fleet races
+	private bool SeriesContainsMultipleBoatTypes(Series series)
+	{
+		var boatTypes = new HashSet<string>();
+
+		foreach (var race in series.Races)
+		{
+			foreach (var boatRace in race.BoatRaces)
+			{
+				boatTypes.Add(boatRace.BoatDetails.BoatType);
+
+				if (boatTypes.Count > 1)
+				{
+					return true;
+				}
+			}
+		}
+
+		return false;
+	}
+
+	protected override void OnInitialized()
+	{
+		series = resultService.SeriesList();
+		Console.WriteLine($"chartData count: {chartData?.Count}");
+		//UpdateAverages();
+	}
+
+
+	protected void selectedChanged(Series selectedSeries)
+	{
+		this.selectedSeries = selectedSeries;
+		resultDTOs = new List<ResultDTO>();
+
+		int numberOfBoatsInRace = selectedSeries.Races
+			.SelectMany(x => x.BoatRaces)
+			.GroupBy(x => x.BoatDetails)
+			.Count();
+
+		resultDTOs = selectedSeries.Races.SelectMany(x => x.BoatRaces)
+			.GroupBy(x => x.BoatDetails)
+			.Select(g => new ResultDTO()
+				{
+					Name = g.Key.BoatName,
+					TotalRaceTime = g.Where(c => c.FinishingStatus == "Finished").Aggregate(TimeSpan.Zero, (total, next) => total + next.TimingRecord),
+					SailNumber = g.Key.SailNumber,
+					BoatType = g.Key.BoatType,
+					FinishingStatus = g.Any(c => c.FinishingStatus == "Finished") ? "Finished" : "NotFinished"
+				}).ToList();
+
+		// Calculate corrected time for each result
+		foreach (var result in resultDTOs)
+		{
+			result.CorrectedTime = GetCorrectedTime(result.BoatType, result.TotalRaceTime);
+		}
+
+		// Calculate points based on corrected time for each race
+		int raceIndex = 1;
+		foreach (var race in selectedSeries.Races)
+		{
+			var raceResults = race.BoatRaces.Select(br => new
+			{
+				BoatDetails = br.BoatDetails,
+				CorrectedTime = GetCorrectedTime(br.BoatDetails.BoatType, br.TimingRecord),
+				FinishingStatus = br.FinishingStatus
+			})
+				.OrderBy(r => r.CorrectedTime)
+				.ToList();
+
+			int position = 1;
+			foreach (var raceResult in raceResults)
+			{
+				if (raceResult.FinishingStatus == "Finished")
+				{
+					var resultToUpdate = resultDTOs.FirstOrDefault(r => r.Name == raceResult.BoatDetails.BoatName);
+					if (resultToUpdate != null)
+					{
+						resultToUpdate.Points += position;
+						if (raceIndex == selectedSeries.Races.Count)
+						{
+							resultToUpdate.Position = position;
+						}
+					}
+					position++;
+				}
+				else
+				{
+					var resultToUpdate = resultDTOs.FirstOrDefault(r => r.Name == raceResult.BoatDetails.BoatName);
+					if (resultToUpdate != null)
+					{
+						resultToUpdate.Points += numberOfBoatsInRace + 1;
+					}
+				}
+			}
+			raceIndex++;
+		}
+
+		UpdateChartData();
+		UpdateAverages();
+		StateHasChanged();
+	}
+
+
+
+
+	public static TimeSpan CalculateCorrectedTime(string boatType, TimeSpan timingRecord)
+	{
+		double pyNumber;
+
+		switch (boatType)
+		{
+			case "Sloop":
+				pyNumber = 1300;
+				break;
+			case "1720":
+				pyNumber = 850;
+				break;
+			default:
+				throw new ArgumentException($"Unknown boat type: {boatType}");
+		}
+
+		double elapsedTimeInSeconds = timingRecord.TotalSeconds;
+		double correctedTimeInSeconds = elapsedTimeInSeconds * 1000 / pyNumber;
+		TimeSpan correctedTime = TimeSpan.FromSeconds(correctedTimeInSeconds);
+
+		return correctedTime;
+	}
+
+	private TimeSpan GetCorrectedTime(string boatType, TimeSpan totalRaceTime)
+	{
+		return CalculateCorrectedTime(boatType, totalRaceTime);
+	}
+
+	public List<ResultDTO> SortResultsByCorrectedTime(List<ResultDTO> results)
+	{
+		return results.OrderBy(x => x.CorrectedTime).ToList();
+
+	}
+
+	public void CalculatePoints(List<ResultDTO> results)
+	{
+		var sortedResults = results.OrderBy(result => result.CorrectedTime).ToList();
+		int numberOfBoats = results.Count;
+
+		for (int i = 0; i < sortedResults.Count; i++)
+		{
+			if (sortedResults[i].FinishingStatus == "Finished")
+			{
+				sortedResults[i].Points = i + 1;
+			}
+			else
+			{
+				sortedResults[i].Points = numberOfBoats + 1;
+			}
+		}
+	}
+
+	//not working
+	private List<ResultDTO> BreakTiesForResults(List<ResultDTO> sortedResults)
+	{
+		for (int i = 1; i < sortedResults.Count; i++)
+		{
+			if (sortedResults[i].Points == sortedResults[i - 1].Points)
+			{
+				int start = i - 1;
+				int end = i;
+
+				while (end + 1 < sortedResults.Count && sortedResults[end].Points == sortedResults[end + 1].Points)
+				{
+					end++;
+				}
+
+				var tiedResults = sortedResults.GetRange(start, end - start + 1);
+				var lastRace = selectedSeries.Races.Last();
+				tiedResults.Sort((a, b) =>
+				{
+					var aBoatRace = lastRace.BoatRaces.FirstOrDefault(br => br.BoatDetails.BoatName == a.Name);
+					var bBoatRace = lastRace.BoatRaces.FirstOrDefault(br => br.BoatDetails.BoatName == b.Name);
+					if (aBoatRace != null && bBoatRace != null)
+					{
+						TimeSpan aCorrectedTime = GetCorrectedTime(aBoatRace.BoatDetails.BoatType, aBoatRace.TimingRecord);
+						TimeSpan bCorrectedTime = GetCorrectedTime(bBoatRace.BoatDetails.BoatType, bBoatRace.TimingRecord);
+						return aCorrectedTime.CompareTo(bCorrectedTime);
+					}
+					return 0;
+				});
+
+				sortedResults.RemoveRange(start, end - start + 1);
+				sortedResults.InsertRange(start, tiedResults);
+
+				i = end;
+			}
+		}
+
+		return sortedResults;
+	}
+
+
+
+	//protected override void OnParametersSet()
+	//{
+	//	_currentRowIndex = 0;
+	//}
+
+	public class BoatCorrectedTimeData
+	{
+		public string BoatName { get; set; }
+		public double CorrectedTime { get; set; }
+		public double TotalRaceTime { get; set; }
+	}
+	private List<BoatCorrectedTimeData> chartData = new List<BoatCorrectedTimeData>();
+
+	private void UpdateChartData()
+	{
+		chartData = resultDTOs.Select(r => new BoatCorrectedTimeData
+			{
+				BoatName = r.Name,
+				CorrectedTime = Math.Round(TimeHelpers.CalculateCorrectedTime(r.BoatType, r.TotalRaceTime).TotalMinutes, 2),
+				TotalRaceTime = Math.Round(r.TotalRaceTime.TotalMinutes, 2)
+			}).OrderBy(bctd => bctd.CorrectedTime).ToList();
+	}
+
+	public class BoatPointsData
+	{
+		public string BoatName { get; set; }
+		public int Points { get; set; }
+	}
+
+	private List<BoatPointsData> GetBoatPointsData()
+	{
+		var boatPointsData = resultDTOs
+			.GroupBy(x => x.Name)
+			.Select(g => new BoatPointsData
+				{
+					BoatName = g.Key,
+					Points = g.Sum(x => x.Points)
+				})
+			.OrderBy(bpd => bpd.Points) 
+			.ToList();
+
+		return boatPointsData;
+	}
+
+
+	private double averageTotalRaceTime;
+	private string averageTotalRaceTimeFormatted;
+	public double maxTotalRaceTimeTime;
+	public double minTotalRaceTimeTime;
+	public double medianTotalRaceTimeTime;
+
+	public string maxTotalRaceTimeFormatted;
+	public string minTotalRaceTimeFormatted;
+	public string medianTotalRaceTimeTimeFormatted;
+
+
+	private string averageCorrectedTimeFormatted;
+	private double averageCorrectedTime;
+	public double maxCorrectedTime;
+	public double minCorrectedTime;
+	public double medianCorrectedTime;
+	public string maxCorrectedTimeFormatted;
+	public string minCorrectedTimeFormatted;
+	public string medianCorrectedTimeFormatted;
+
+
+	private void UpdateAverages()
+	{
+		Console.WriteLine($"Updating averages. resultDTOs count: {resultDTOs?.Count}");
+
+		if (resultDTOs != null && resultDTOs.Count > 0)
+		{
+			averageCorrectedTime = resultDTOs.Average(x => x.CorrectedTime.TotalMinutes);
+			averageTotalRaceTime = resultDTOs.Average(x => x.TotalRaceTime.TotalMinutes);
+
+			Console.WriteLine($"Average Corrected Time: {averageCorrectedTime}");
+			Console.WriteLine($"Average Total Race Time: {averageTotalRaceTime}");
+
+			averageCorrectedTimeFormatted = averageCorrectedTime.ToString("N2");
+			averageTotalRaceTimeFormatted = averageTotalRaceTime.ToString("N2");
+
+			maxCorrectedTime = resultDTOs.Max(x => x.CorrectedTime.TotalMinutes);
+			minCorrectedTime = resultDTOs.Min(x => x.CorrectedTime.TotalMinutes);
+			medianCorrectedTime = GetMedianCorrectedTime(resultDTOs);
+
+			maxCorrectedTimeFormatted = maxCorrectedTime.ToString("N2");
+			minCorrectedTimeFormatted = minCorrectedTime.ToString("N2");
+			medianCorrectedTimeFormatted = medianCorrectedTime.ToString("N2");
+
+			maxTotalRaceTimeTime = resultDTOs.Max(x => x.TotalRaceTime.TotalMinutes);
+			minTotalRaceTimeTime = resultDTOs.Min(x => x.TotalRaceTime.TotalMinutes);
+			medianTotalRaceTimeTime = GetMedianTotalRaceTime(resultDTOs);
+
+			maxTotalRaceTimeFormatted = maxTotalRaceTimeTime.ToString("N2");
+			minTotalRaceTimeFormatted = minTotalRaceTimeTime.ToString("N2");
+			medianTotalRaceTimeTimeFormatted = medianTotalRaceTimeTime.ToString("N2");
+
+			var maxCorrectedTimeBoat = resultDTOs.OrderByDescending(x => x.CorrectedTime).First();
+			var minCorrectedTimeBoat = resultDTOs.OrderBy(x => x.CorrectedTime).First();
+			var maxTotalRaceTimeBoat = resultDTOs.OrderByDescending(x => x.TotalRaceTime).First();
+			var minTotalRaceTimeBoat = resultDTOs.OrderBy(x => x.TotalRaceTime).First();
+
+			maxCorrectedTime = maxCorrectedTimeBoat.CorrectedTime.TotalMinutes;
+			minCorrectedTime = minCorrectedTimeBoat.CorrectedTime.TotalMinutes;
+			maxTotalRaceTimeTime = maxTotalRaceTimeBoat.TotalRaceTime.TotalMinutes;
+			minTotalRaceTimeTime = minTotalRaceTimeBoat.TotalRaceTime.TotalMinutes;
+		}
+		else
+		{
+			averageCorrectedTimeFormatted = "N/A";
+			averageTotalRaceTimeFormatted = "N/A";
+			maxCorrectedTimeFormatted = "N/A";
+			minCorrectedTimeFormatted = "N/A";
+			medianCorrectedTimeFormatted = "N/A";
+			maxTotalRaceTimeFormatted = "N/A";
+			minTotalRaceTimeFormatted = "N/A";
+			medianTotalRaceTimeTimeFormatted = "N/A";
+			var maxCorrectedTimeBoat = "N/A";
+			var minCorrectedTimeBoat = "N/A";
+			var maxTotalRaceTimeBoat = "N/A";
+			var minTotalRaceTimeBoat = "N/A";
+		}
+	}
+	private double GetMedianCorrectedTime(List<ResultDTO> results)
+	{
+		int count = results.Count;
+		if (count == 0) return 0;
+
+		var sortedResults = results.OrderBy(x => x.CorrectedTime.TotalMinutes).ToList();
+		int middleIndex = count / 2;
+
+		if (count % 2 == 0)
+		{
+			return (sortedResults[middleIndex - 1].CorrectedTime.TotalMinutes + sortedResults[middleIndex].CorrectedTime.TotalMinutes) / 2;
+		}
+		else
+		{
+			return sortedResults[middleIndex].CorrectedTime.TotalMinutes;
+		}
+	}
+
+	private double GetMedianTotalRaceTime(List<ResultDTO> results)
+	{
+		int count = results.Count;
+		if (count == 0) return 0;
+
+		var sortedResults = results.OrderBy(x => x.TotalRaceTime.TotalMinutes).ToList();
+		int middleIndex = count / 2;
+
+		if (count % 2 == 0)
+		{
+			return (sortedResults[middleIndex - 1].TotalRaceTime.TotalMinutes + sortedResults[middleIndex].TotalRaceTime.TotalMinutes) / 2;
+		}
+		else
+		{
+			return sortedResults[middleIndex].TotalRaceTime.TotalMinutes;
+		}
+	}
+	public int CalculatePYRating(string boatType)
+	{
+		if (boatType == "1720")
+		{
+			return 850;
+		}
+		else if (boatType == "Sloop")
+		{
+			return 1300;
+		}
+		else
+		{
+			// Return a default value if the boat type is unknown
+			return 1000;
+		}
+	}
+
+
+
+
+	SfChart ChartObj;
+
+	private async Task Print(MouseEventArgs args)
+	{
+		await ChartObj.PrintAsync();
+	}
+
+	private async Task ExportToPdf()
+	{
+		// Create a new PDF document
+		using PdfDocument document = new PdfDocument();
+		document.PageSettings.Margins.All = 0;
+
+		// Add a new page to the PDF document
+		PdfPageBase page = document.Pages.Add();
+
+		// Create a PdfGrid
+		PdfGrid grid = new PdfGrid();
+
+		// Populate the grid with data from the resultDTOs list
+		grid.DataSource = resultDTOs;
+
+		// Set the grid's column headers
+		grid.Headers.Add(1);
+		grid.Headers[0].Cells[0].Value = "Position";
+		grid.Headers[0].Cells[1].Value = "Name";
+		grid.Headers[0].Cells[2].Value = "Points";
+
+		// Calculate the width and height of the table on the PDF page
+		var pageSize = page.Size;
+		float width = pageSize.Width - 20;
+		float height = pageSize.Height - 20;
+
+		// Create a PdfGraphics object from the PdfPageBase
+		PdfGraphics graphics = page.Graphics;
+
+		// Draw the grid on the PDF page
+		grid.Draw(graphics, new Syncfusion.Drawing.RectangleF(10, 10, width, height));
+
+		// Save the document to a MemoryStream
+		MemoryStream stream = new MemoryStream();
+		document.Save(stream);
+
+		// Reset the MemoryStream's position
+		stream.Position = 0;
+
+		// Save the MemoryStream as a file
+		var fileName = $"Exported_Table_{DateTime.Now.ToString("yyyyMMddHHmmss")}.pdf";
+		var file = new FileStream(fileName, FileMode.Create, FileAccess.Write);
+		await stream.CopyToAsync(file);
+		file.Close();
+
+		//var stream1 = await ExportService.ExportToPdf(resultDTOs);
+		//var buffer = stream.ToArray();
+		//var base64String = Convert.ToBase64String(buffer);
+		//var dataUrl = $"data:application/pdf;base64,{base64String}";
+		// Download the file
+		await JSRuntime.InvokeVoidAsync("downloadFile", fileName);
+	}
+
+
+
+
+
+}

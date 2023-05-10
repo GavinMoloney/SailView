@@ -1,0 +1,230 @@
+﻿@page "/results"
+@attribute [Authorize]
+@using SailView.Services;
+@using SailView.Data.Models;
+@using System.ComponentModel.DataAnnotations;
+@using Microsoft.AspNetCore.Components
+@using Microsoft.AspNetCore.WebUtilities
+@using SailView.Data;
+@using System.Linq;
+@using SailView.DTOs;
+@using System.Net.Http.Json;
+@using Microsoft.EntityFrameworkCore;
+@using Syncfusion.Blazor.Charts
+@using Syncfusion.Blazor.Grids
+@using Syncfusion.Blazor.Layouts
+@inject HttpClient httpClient;
+@inject RaceService raceService;
+@inject ResultService resultService;
+@inject BoatResultService boatResultService;
+@inject BoatService boatService;
+@inject NavigationManager navigationManager;
+@inject SailAppDbContext _dbContext;
+@using MudColor = MudBlazor.Color
+
+
+<br/>
+<h3>Results History</h3>
+<br/>
+
+@if (BoatsWithRaceResults != null && BoatsWithRaceResults.Count > 0)
+{
+    <MudTextField @bind-Value="searchString" Placeholder="Search" Variant="Variant.Outlined" Adornment="Adornment.End" AdornmentIcon="@Icons.Material.Filled.Search" AdornmentColor="Color.Primary" @oninput="ApplySearch" />
+
+    <MudTable Items="@filteredBoatsWithRaceResults">
+
+        <HeaderContent>
+            <MudTh>Boat Name</MudTh>
+            <MudTh>Sail Number</MudTh>
+            <MudTh>Class</MudTh>
+            <MudTh>Race Results</MudTh>
+        </HeaderContent>
+        <RowTemplate Context="boatWithRaceResults">
+            <MudTd>@boatWithRaceResults.BoatName</MudTd>
+            <MudTd>@boatWithRaceResults.SailNumber</MudTd>
+            <MudTd>@boatWithRaceResults.BoatType</MudTd>
+            <MudTd>
+                @if (boatWithRaceResults.RaceResults != null && boatWithRaceResults.RaceResults.Count > 0)
+                {
+                    <MudExpansionPanel Elevation="1" Rounded="true">
+                        <TitleContent>
+                            <MudTypography Variant="subtitle1">Race Results</MudTypography>
+                        </TitleContent>
+                        <ChildContent>
+                            <MudTable Items="@boatWithRaceResults.RaceResults">
+                                <HeaderContent>
+                                    <MudTh>Date of Race</MudTh>
+                                    <MudTh>Position</MudTh>
+                                    <MudTh>Elapsed Time</MudTh>
+                                    <MudTh>Corrected Time</MudTh>
+                                </HeaderContent>
+                                <RowTemplate Context="raceResult">
+                                    <MudTd>@raceResult.RaceDate</MudTd>
+                                    <MudTd>@raceResult.Position</MudTd>
+                                    <MudTd>@TimeSpan.FromSeconds(raceResult.ElapsedTime).ToString("hh\\:mm\\:ss")</MudTd>
+                                    <MudTd>@TimeSpan.FromSeconds(raceResult.CorrectedTime).ToString("hh\\:mm\\:ss")</MudTd>
+                                </RowTemplate>
+                                <PagerContent>
+                                    <MudTablePager />
+                                </PagerContent>
+                            </MudTable>
+                                                  <div class="stats-container">
+                            <MudTypography Variant="body1">Best Position: @boatWithRaceResults.Statistics.BestPosition</MudTypography>
+                            <MudTypography Variant="body1">Total Elapsed Time: @TimeSpan.FromSeconds(boatWithRaceResults.Statistics.TotalElapsedTime).ToString("hh\\:mm\\:ss")</MudTypography>
+                            <MudTypography Variant="body1">Total Corrected Time: @TimeSpan.FromSeconds(boatWithRaceResults.Statistics.TotalCorrectedTime).ToString("hh\\:mm\\:ss")</MudTypography>
+                      </div>
+                        </ChildContent>
+                    </MudExpansionPanel>
+                }
+                else
+                {
+                    <MudAlert Severity="Severity.Info">No race results available for this boat.</MudAlert>
+                }
+            </MudTd>
+        </RowTemplate>
+        <PagerContent>
+            <MudTablePager />
+        </PagerContent>
+    </MudTable>
+}
+else
+{
+    <MudAlert Severity="Severity.Info">No data available.</MudAlert>
+}
+
+
+
+<MudPaper Class="pa-16 ma-2">
+<!-- Total Sailing Time Panel -->
+    <MudText Typo="Typo.h6">Total Sailing Time</MudText>
+<SfChart Title="Total Sailing Time">
+    <ChartPrimaryXAxis ValueType="Syncfusion.Blazor.Charts.ValueType.Category" Title="Boat Name">
+        <ScrollSettings HorizontalOffset="100" VerticalOffset="50">
+    </ScrollSettings>
+    </ChartPrimaryXAxis>
+    <ChartPrimaryYAxis Title="Time (minutes)"></ChartPrimaryYAxis>
+        <ChartTooltipSettings Enable="true"></ChartTooltipSettings>
+        <ChartZoomSettings EnableSelectionZooming="true" EnablePinchZooming="true" EnableMouseWheelZooming="true" EnableScrollbar="true"
+                           Mode="Syncfusion.Blazor.Charts.ZoomMode.X">
+        </ChartZoomSettings>
+    <ChartSeriesCollection>
+        <ChartSeries DataSource="@BoatsWithRaceResults" XName="BoatName" YName="Statistics.TotalElapsedTime" Type="ChartSeriesType.Column" Name="Total Elapsed Time"></ChartSeries>
+        <ChartSeries DataSource="@BoatsWithRaceResults" XName="BoatName" YName="Statistics.TotalCorrectedTime" Type="ChartSeriesType.Column" Name="Total Corrected Time"></ChartSeries>
+    </ChartSeriesCollection>
+</SfChart>
+<br/>
+
+    <MudText Typo="Typo.h6">Top 3 Boats</MudText>
+<!-- Top 3 Boats Panel -->
+<SfGrid DataSource="@TopThreeBoats" AllowSorting="true" Height="125">
+    <GridColumns>
+        <GridColumn Field=@nameof(BoatWithRaceResultsDTO.BoatName) HeaderText="Boat Name"></GridColumn>
+        <GridColumn Field=@nameof(BoatWithRaceResultsDTO.SailNumber) HeaderText="Sail Number"></GridColumn>
+        <GridColumn Field=@nameof(BoatWithRaceResultsDTO.BoatType) HeaderText="Class"></GridColumn>
+        <GridColumn Field=@nameof(BoatWithRaceResultsDTO.FirstPlaceFinishes) HeaderText="1st Place Finishes"></GridColumn>
+    </GridColumns>
+</SfGrid>
+<br/>
+
+<!-- Total Boats Panel -->
+
+    <MudText Typo="Typo.h6">Total Boats</MudText>
+    <SfChart Title="@($"Total Number of Boats: {TotalBoats}")">
+
+    <ChartPrimaryXAxis ValueType="Syncfusion.Blazor.Charts.ValueType.Category" Title="Boat Type"></ChartPrimaryXAxis>
+    <ChartPrimaryYAxis Title="Count"></ChartPrimaryYAxis>
+        <ChartTooltipSettings Enable="true"></ChartTooltipSettings>
+    <ChartSeriesCollection>
+        <ChartSeries DataSource="@BoatTypeCounts" XName="BoatType" YName="Count" Type="ChartSeriesType.Column" Name="Total Boats">
+        </ChartSeries>
+    </ChartSeriesCollection>
+</SfChart>
+</MudPaper>
+
+
+@code {
+    public int TotalBoats { get; set; }
+    private string searchString = "";
+    private List<BoatWithRaceResultsDTO> BoatsWithRaceResults { get; set; }
+    private List<BoatWithRaceResultsDTO> filteredBoatsWithRaceResults => BoatsWithRaceResults.Where(boat => string.IsNullOrEmpty(searchString) || boat.BoatName.Contains(searchString, StringComparison.OrdinalIgnoreCase) || boat.SailNumber.Contains(searchString, StringComparison.OrdinalIgnoreCase) || boat.BoatType.Contains(searchString, StringComparison.OrdinalIgnoreCase)).ToList();
+    private List<BoatWithRaceResultsDTO> TopThreeBoats => BoatsWithRaceResults?.OrderByDescending(b => b.FirstPlaceFinishes).Take(3).ToList() ?? new List<BoatWithRaceResultsDTO>();
+    private List<BoatTypeCount> BoatTypeCounts { get; set; }
+
+    private void ApplySearch()
+    {
+        StateHasChanged();
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await boatResultService.PopulateRaceResultsAsync();
+        BoatsWithRaceResults = await boatResultService.GetBoatsWithRaceResultsAsync() ?? new List<BoatWithRaceResultsDTO>();
+
+        foreach (var boat in BoatsWithRaceResults)
+        {
+            boat.Statistics = CalculateBoatStatistics(boat, boat.RaceResults);
+        }
+
+        //navigation from boats.razor
+        var uri = navigationManager.ToAbsoluteUri(navigationManager.Uri);
+        if (QueryHelpers.ParseQuery(uri.Query).TryGetValue("boatName", out var boatName))
+        {
+            searchString = boatName.ToString();
+        }
+
+        CalculateBoatTypeCounts();
+
+    }
+
+    private BoatStatistics CalculateBoatStatistics(BoatWithRaceResultsDTO boat, List<SailView.Data.Models.RaceResults> raceResults)
+    {
+        BoatStatistics stats = new BoatStatistics();
+
+        if (raceResults != null && raceResults.Count > 0)
+        {
+            stats.BestPosition = raceResults.Min(r => r.Position);
+            stats.TotalElapsedTime = raceResults.Sum(r => r.ElapsedTime) / 60;
+            stats.TotalCorrectedTime = raceResults.Sum(r => r.CorrectedTime) / 60;
+            boat.FirstPlaceFinishes = raceResults.Count(r => r.Position == 1);
+        }
+
+        return stats;
+    }
+
+    //search
+    private bool FilterFunc(BoatWithRaceResultsDTO boat, string searchString)
+    {
+        if (string.IsNullOrWhiteSpace(searchString))
+            return true;
+
+        if (boat.BoatName.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+
+        if (boat.SailNumber.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+
+        if (boat.BoatType.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+
+        return false;
+    }
+
+    //for dashboard
+    public class BoatTypeCount
+    {
+        public string BoatType { get; set; }
+        public int Count { get; set; }
+    }
+
+    private void CalculateBoatTypeCounts()
+    {
+        BoatTypeCounts = BoatsWithRaceResults.GroupBy(b => b.BoatType)
+                            .Select(g => new BoatTypeCount
+                                {
+                                    BoatType = g.Key,
+                                    Count = g.Count()
+                                }).ToList();
+        TotalBoats = BoatTypeCounts.Sum(b => b.Count);
+    }
+
+}

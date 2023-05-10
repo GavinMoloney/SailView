@@ -1,0 +1,170 @@
+﻿@page "/tides"
+@attribute [Authorize]
+@using SailView.Services;
+@using Syncfusion.Blazor.Charts
+@using Microsoft.JSInterop
+@using System.Text.Json;
+@using System.Text.Json.Serialization;
+@inject IJSRuntime JSRuntime
+@inject TideService tideService
+
+
+<h3>Tides</h3>
+
+<MudContainer>
+    <MudTextField @bind-Value="Latitude" Label="Latitude" Variant="Variant.Outlined" id="latitude" />
+    <MudTextField @bind-Value="Longitude" Label="Longitude" Variant="Variant.Outlined" id="longitude" />
+    <MudButton OnClick="@GetCurrentLocation" Variant="Variant.Filled">Get Location</MudButton>
+    <MudButton OnClick="@LoadTideDataFromInput" Variant="Variant.Filled" Color="Color.Primary">Load Tide Data</MudButton>
+    <br/>
+    @if (!string.IsNullOrEmpty(LocationStatus))
+    {
+        <div>@LocationStatus</div>
+    }
+    @if (!string.IsNullOrEmpty(ErrorMessage))
+    {
+        <MudAlert Severity="Severity.Error">@ErrorMessage</MudAlert>
+    }
+
+
+    @if (TideData != null)
+    {
+        <SfChart Title="Tide Chart">
+            <ChartPrimaryXAxis ValueType="Syncfusion.Blazor.Charts.ValueType.Category" LabelFormat="MM/dd, HH:mm"></ChartPrimaryXAxis>
+                        <ChartPrimaryYAxis>
+                    <ChartAxisAnnotations>
+            <ChartAxisAnnotation Content="0" Y="0" CoordinateUnit="CoordinateUnit.Axis">
+                <ChartAxisAnnotationLineStyle Width="2" Color="red"></ChartAxisAnnotationLineStyle>
+            </ChartAxisAnnotation>
+        </ChartAxisAnnotations>
+            </ChartPrimaryYAxis>
+            <ChartTooltipSettings Enable="true"></ChartTooltipSettings>
+            <ChartSeriesCollection>
+                <ChartSeries DataSource="@TideData.Heights" XName="Date" YName="Height" Type="ChartSeriesType.Line">
+                </ChartSeries>
+            </ChartSeriesCollection>
+        </SfChart>
+    }
+</MudContainer>
+
+@if (TideEvents != null && TideEvents.Count > 0)
+{
+    <div class="tide-events">
+        <MudTable Items="@TideEvents">
+            <HeaderContent>
+                <MudTh>Event</MudTh>
+                <MudTh>Time</MudTh>
+                <MudTh>Height</MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd DataLabel="Event">@context.EventType</MudTd>
+                <MudTd DataLabel="Day">@context.DateTime</MudTd>
+                <MudTd DataLabel="Height">@context.Height</MudTd>
+            </RowTemplate>
+        </MudTable>
+    </div>
+}
+
+
+
+@code {
+    private string Latitude { get; set; } = "0";
+    private string Longitude { get; set; } = "0";
+    private TideData TideData { get; set; }
+    private string ErrorMessage { get; set; }
+    private List<TideEvent> TideEvents { get; set; }
+    private string LocationStatus { get; set; }
+
+
+    private async Task LoadTideDataFromInput()
+    {
+        if (double.TryParse(Latitude, out var lat) && double.TryParse(Longitude, out var lon))
+        {
+            (TideData tideData, string errorMessage) = await tideService.GetTideData(lat, lon);
+            TideData = tideData;
+            ErrorMessage = errorMessage;
+            ExtractTideEvents();
+        }
+    }
+
+
+
+    public class TideEvent
+    {
+        public DateTime DateTime { get; set; }
+        public double Height { get; set; }
+        public string EventType { get; set; }
+    }
+
+    private void ExtractTideEvents()
+    {
+        TideEvents = new List<TideEvent>();
+
+        if (TideData == null || TideData.Heights.Count < 2)
+        {
+            return;
+        }
+
+        for (int i = 1; i < TideData.Heights.Count - 1; i++)
+        {
+            if (TideData.Heights[i - 1].Height < TideData.Heights[i].Height && TideData.Heights[i].Height > TideData.Heights[i + 1].Height)
+            {
+                TideEvents.Add(new TideEvent
+                    {
+                        DateTime = TideData.Heights[i].Date,
+                        Height = TideData.Heights[i].Height,
+                        EventType = "High Tide"
+                    });
+            }
+            else if (TideData.Heights[i - 1].Height > TideData.Heights[i].Height && TideData.Heights[i].Height < TideData.Heights[i + 1].Height)
+            {
+                TideEvents.Add(new TideEvent
+                    {
+                        DateTime = TideData.Heights[i].Date,
+                        Height = TideData.Heights[i].Height,
+                        EventType = "Low Tide"
+                    });
+            }
+        }
+    }
+
+    public class Coordinates
+    {
+        [JsonPropertyName("latitude")]
+        public double Latitude { get; set; }
+
+        [JsonPropertyName("longitude")]
+        public double Longitude { get; set; }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await GetCurrentLocation();
+        }
+    }
+
+    private async Task GetCurrentLocation()
+    {
+        try
+        {
+            LocationStatus = "Requesting location...";
+            var coordinates = await JSRuntime.InvokeAsync<Coordinates>("getUserLocation");
+            if (coordinates != null)
+            {
+                Latitude = coordinates.Latitude.ToString();
+                Longitude = coordinates.Longitude.ToString();
+                LocationStatus = "Location retrieved successfully!";
+            }
+        }
+        catch (Exception ex)
+        {
+            LocationStatus = $"Error: {ex.Message}";
+        }
+    }
+
+
+
+
+}

@@ -1,0 +1,198 @@
+﻿@page "/newrace"
+@attribute [Authorize]
+@using SailView.DTOs;
+@using SailView.Services;
+@using SailView.Data.Models;
+@using System.Text.RegularExpressions
+@using System.ComponentModel.DataAnnotations
+@inject BoatService boatService;
+@inject RaceService raceService;
+@inject NavigationManager NavigationManager;
+@inject IDialogService DialogService;
+@inject ISnackbar SnackBar;
+
+<h1>New One Design Race</h1>
+
+<br />
+
+<EditForm Model=@race OnValidSubmit="HandleSubmit">
+    <DataAnnotationsValidator />
+    <MudCard>
+        <MudCardContent>
+            <h3>Enter Race Details</h3>
+            <br/>
+
+            <MudTextField @bind-Value="@race.RaceId" For="@(()=>race.RaceId)" Label="Enter Race Name or Identifier" Required="true" RequiredError="Race Identifier is required!" Variant="Variant.Text"></MudTextField>
+
+            <MudCardContent>
+                <h3>Enter Details For Each Boat</h3>
+
+                <MudTable Items="@race.BoatRaces" Hover Striped Filter="new Func<BoatRaces,bool>(FilterFunc1)">
+                    <ToolBarContent>
+                        <MudText Typo="Typo.h6">Race Entries</MudText>
+                        <MudSpacer />
+                    </ToolBarContent>
+                    <HeaderContent>
+                        <MudTh>Position</MudTh>
+                        <MudTh>Boat Name</MudTh>
+                        <MudTh>Boat Type</MudTh>
+                        <MudTh>Sail Number</MudTh>
+                        <MudTh>Time</MudTh>
+                        <MudTh>Finishing Status</MudTh>
+                    </HeaderContent>
+                    <RowTemplate Context="boatDetails">
+                        <MudTd DataLabel="Position">@boatDetails.Position</MudTd>
+                        <MudTd DataLabel="BoatName">@boatDetails.BoatDetails.BoatName</MudTd>
+                        <MudTd DataLabel="BoatType">@boatDetails.BoatDetails.BoatType</MudTd>
+                        <MudTd DataLabel="SailNumber">@boatDetails.BoatDetails.SailNumber</MudTd>
+                        <MudTd DataLabel="Time">
+                            <MudTextField @bind-Value="@boatDetails.TimingRecord" Variant="Variant.Text" Dense="true" FullWidth="true"></MudTextField>
+                        </MudTd>
+                        <MudTd DataLabel="Status">
+                            <MudTextField @bind-Value="@boatDetails.FinishingStatus" Variant="Variant.Text" Dense="true" FullWidth="true"></MudTextField>
+                        </MudTd>
+                    </RowTemplate>
+                    <PagerContent>
+                        <MudTablePager />
+                    </PagerContent>
+                </MudTable>
+                <br/>
+                @*<MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="AddBoat">Create New Boat</MudButton>*@
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="AddSelectedBoat">Select Boat</MudButton>
+                <MudButton Variant="Variant.Filled" Color="Color.Secondary" ButtonType="ButtonType.Reset">Reset</MudButton>
+                <MudButton Variant="Variant.Filled" Color="Color.Default" Href="RaceList">Cancel</MudButton>
+                <br />
+            </MudCardContent>
+            <br />
+
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" ButtonType="ButtonType.Submit">Create Race</MudButton>
+            <MudButton Variant="Variant.Filled" Color="Color.Secondary" ButtonType="ButtonType.Reset">Reset</MudButton>
+            <MudButton Variant="Variant.Filled" Color="Color.Default" Href="RaceList">Cancel</MudButton>
+
+        </MudCardContent>
+    </MudCard>
+</EditForm>
+
+
+                @code {
+    Races race = new Races();
+    private string searchString1 = "";
+    private BoatDetails selectedBoat { get; set; } = new();
+    private TimeSpan TimingRecord { get; set; } = TimeSpan.Zero;
+    private int Position { get; set; }
+    private string FinishingStatus { get; set; }
+
+    public void HandleSubmit(EditContext editContext)
+    {
+        var newRace = (Races)editContext.Model;
+        newRace.CreatedDate = DateTime.Now;
+        //foreach (var item in selectedValues)
+        // newRace.BoatRaces.Add(item);
+        foreach (var item in newRace.BoatRaces)
+        {
+            item.BoatDetails = null!;
+        }
+        raceService.NewRace(newRace);
+        race = new();
+        NavigationManager.NavigateTo("RaceList");
+    }
+    void Cancel()
+    {
+        NavigationManager.NavigateTo("RaceList");
+    }
+
+    //search
+    private bool FilterFunc1(BoatRaces element) => FilterFunc(element, searchString1);
+
+    private bool FilterFunc(BoatRaces element, string searchString)
+    {
+        if (string.IsNullOrWhiteSpace(searchString))
+            return true;
+        if (element.BoatDetails.BoatName.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+        if (element.BoatDetails.BoatType.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+        if (element.BoatDetails.SailNumber.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+        if ($"{element.BoatDetails.Id}".Contains(searchString))
+            return true;
+        return false;
+    }
+
+    private async Task AddBoat()
+    {
+        var dialog = DialogService.Show<AddRaceDialog>("Add Boat");
+        var result = await dialog.Result;
+
+        if (!result.Cancelled)
+        {
+            BoatRaceDTO boatDetails = (BoatRaceDTO)result.Data;
+            var newBoatRace = new BoatRaces()
+                {
+                    TimingRecord = boatDetails.TimingRecord,
+                    Position = boatDetails.Position,
+                    FinishingStatus = boatDetails.FinishingStatus,
+                    Points = boatDetails.Points,
+                    BoatDetails = new BoatDetails() { BoatName = boatDetails.BoatName, BoatType = boatDetails.BoatType, CreatedDate = DateTime.Now, SailNumber = boatDetails.SailNumber }
+                };
+
+            if (race.BoatRaces.Count == 0 || (race.BoatRaces.Last().Position + 1 == newBoatRace.Position && race.BoatRaces.Last().TimingRecord < newBoatRace.TimingRecord))
+            {
+                if (!race.BoatRaces.Any(br => br.BoatDetails.SailNumber == newBoatRace.BoatDetails.SailNumber))
+                {
+                    race.BoatRaces.Add(newBoatRace);
+                    SnackBar.Add("Boat is added successfully", Severity.Success);
+                }
+                else
+                {
+                    SnackBar.Add("Boat with the same sail number already exists in the race", Severity.Error);
+                }
+            }
+            else
+            {
+                SnackBar.Add("Invalid position or timing record. Position must be the previous position entry + 1, and timing record must be greater than the previous entry", Severity.Error);
+            }
+        }
+    }
+
+
+    private async Task AddSelectedBoat()
+    {
+        var dialog = DialogService.Show<AddBoatDialog>("Select Boat");
+        var result = await dialog.Result;
+        if (!result.Cancelled)
+        {
+            BoatRaceDTO boatDetails = (BoatRaceDTO)result.Data;
+            var newBoatRace = new BoatRaces()
+                {
+                    TimingRecord = boatDetails.TimingRecord,
+                    Position = boatDetails.Position,
+                    BoatId = boatService.GetBoatByName(boatDetails.BoatName).Id,
+                    BoatDetails = boatService.GetBoatByName(boatDetails.BoatName),
+                    FinishingStatus = boatDetails.FinishingStatus
+                };
+
+            if (race.BoatRaces.Count == 0 || (race.BoatRaces.Last().Position + 1 == newBoatRace.Position && race.BoatRaces.Last().TimingRecord < newBoatRace.TimingRecord))
+            {
+                if (!race.BoatRaces.Any(br => br.BoatDetails.SailNumber == newBoatRace.BoatDetails.SailNumber))
+                {
+                    race.BoatRaces.Add(newBoatRace);
+                    SnackBar.Add("Boat is added successfully", Severity.Success);
+                    TimingRecord = TimeSpan.Zero;
+                    Position = 0;
+                    selectedBoat = new();
+                }
+                else
+                {
+                    SnackBar.Add("Boat with the same sail number already exists in the race", Severity.Error);
+                }
+            }
+            else
+            {
+                SnackBar.Add("Invalid position or timing record. Position must be the previous position entry + 1, and timing record must be greater than the previous entry", Severity.Error);
+            }
+        }
+    }
+
+
+}

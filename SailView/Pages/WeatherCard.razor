@@ -1,0 +1,217 @@
+﻿
+<div class="card text-center h-100">
+    @if (!string.IsNullOrWhiteSpace(DateTime))
+    {
+        <div class="card-header">
+            <b><u>@DateTime</u></b>
+        </div>
+    }
+    <div class="card-body">
+        <p class="mb-0">
+            <img src="@WeatherIconImgSrc" height="60" />
+            <b>Conditions:</b> @WeatherDescription
+        </p>
+        <p class="display-6">
+            <b>Air Temperature:</b> @Temperature °C
+        </p>
+        <p class="small">
+            <b>Feels Like:</b> @TemperatureFeelsLike °C
+        </p>
+        <p class="small">
+            <b>Max Temerature:</b> @TemperatureMax °C 
+        </p>
+        <p class="small">
+            <b>Min Temperature:</b> @TemperatureMin °C
+        </p>
+        <p class="small">
+            <b>Humidity:</b> @Humidity %
+        </p>
+        <p class="small">
+            <b>Wind:</b> @WindSpeed Knots
+        </p>
+        <p class="small">
+            <b>Gusting:</b> @WindGust Knots
+        </p>
+        <p class="small">
+            <b>Direction:</b> @GetCardinalDirection(WindDirection) @WindDirection °
+        </p>
+        <p class="small">
+            <b>Force:</b> @ConvertToBeaufort(WindSpeed)
+        </p>
+        <p class="small">
+            <b>Wind Warning:</b> @windWarning(WindSpeed)
+        </p>
+        <p class="small">
+            <b>Description:</b> @Description(WindSpeed)
+        </p>
+        <br/>
+    </div>
+</div>
+
+@code {
+
+    enum BeaufortForce
+    {
+        Zero = 0, One = 1, Two = 2, Three = 3, Four = 4, Five = 5, Six = 6, 
+        Seven = 7, Eight = 8, Nine = 9, Ten = 10, Eleven = 11, Twelve = 12
+    }
+    
+    [Parameter] public string? DateTime { get; set; }
+    [Parameter] public string? WeatherIconImgSrc { get; set; }
+    [Parameter] public string? WeatherDescription { get; set; }
+    [Parameter] public double Temperature { get; set; }
+    [Parameter] public double TemperatureFeelsLike { get; set; }
+    [Parameter] public double TemperatureMax { get; set; }
+    [Parameter] public double TemperatureMin { get; set; }
+    [Parameter] public int Humidity { get; set; }
+    [Parameter] public double WindSpeed { get; set; }
+    [Parameter] public int WindDirection { get; set; }
+    [Parameter] public double WindGust { get; set; }
+
+    public double ConvertToBeaufort(double windSpeed)
+    {
+
+        if (windSpeed < 1)
+        {
+            return Convert.ToDouble(BeaufortForce.Zero);
+        }
+        else if (windSpeed >= 1 && windSpeed <= 3)
+        {
+            return Convert.ToDouble(BeaufortForce.One);
+        }
+        else if (windSpeed >= 4 && windSpeed <=6)
+        {
+            return Convert.ToDouble(BeaufortForce.Two);
+        }
+        else if (windSpeed >= 7 && windSpeed <= 10)
+        {
+            return Convert.ToDouble(BeaufortForce.Three);
+        }
+        else if (windSpeed >= 11 && windSpeed <= 16)
+        {
+            return Convert.ToDouble(BeaufortForce.Four);
+        }
+        else if (windSpeed >= 17 && windSpeed <= 21)
+        {
+            return Convert.ToDouble(BeaufortForce.Five);
+        }
+        else if (windSpeed >= 22 && windSpeed <= 27)
+        {
+            return Convert.ToDouble(BeaufortForce.Six);
+        }
+        else if (windSpeed >= 28 && windSpeed <=33)
+        {
+            return Convert.ToDouble(BeaufortForce.Seven);
+        }
+        else if (windSpeed >= 34 && windSpeed <=40)
+        {
+            return Convert.ToDouble(BeaufortForce.Eight);
+        }
+        else if (windSpeed >= 41 && windSpeed <= 47)
+        {
+            return Convert.ToDouble(BeaufortForce.Nine);
+        }
+        else if (windSpeed >= 48 && windSpeed <= 55)
+        {
+            return Convert.ToDouble(BeaufortForce.Ten);
+        }
+        else if (windSpeed >= 56 && windSpeed <= 63)
+        {
+            return Convert.ToDouble(BeaufortForce.Eleven);
+        }
+        else
+        {
+            return Convert.ToDouble(BeaufortForce.Twelve);
+        }
+
+    }
+
+    public string windWarning(double windSpeed)
+    {
+        if (windSpeed < 22)
+        {
+            return "None";
+        }
+        else if (windSpeed >= 22 && windSpeed <= 33)
+        {
+            return "Small Craft Warning in Operation, Proceed with Caution";
+        }
+        else if (windSpeed >= 34 && windSpeed <= 47)
+        {
+            return "Gale Warning in Operation, Yellow Alert, Competing not Advised";
+        }
+        else if (windSpeed >= 48 && windSpeed <= 55)
+        {
+            return "Storm Warning in Operation, Amber Alert, No Sailing";
+        }
+        else
+        {
+            return "Red Alert for Violent Storm or Hurricane";
+        }
+    }
+
+
+    public string Description(double windSpeed)
+    {
+        if (windSpeed < 1)
+        {
+            return "Calm. Not enough wind";
+        }
+        else if (windSpeed >= 1 && windSpeed <= 3)
+        {
+            return "Light Air. Too light for heavier boats";
+        }
+        else if (windSpeed >= 4 && windSpeed <= 6)
+        {
+            return "Light Breeze. Enough wind for most boats";
+        }
+        else if (windSpeed >= 7 && windSpeed <= 10)
+        {
+            return "Gentle Breeze. Wave Height: 1 Metre.";
+        }
+        else if (windSpeed >= 11 && windSpeed <= 16)
+        {
+            return "Moderate Breeze. Wave Height 1.5 Metres.";
+        }
+        else if (windSpeed >= 17 && windSpeed <= 21)
+        {
+            return "Fresh Breeze. Wave Height: 2.5 Metres.";
+        }
+        else if (windSpeed >= 22 && windSpeed <= 27)
+        {
+            return "Strong Breeze. Wave Height: 4 Metres.";
+        }
+        else if (windSpeed >= 28 && windSpeed <= 33)
+        {
+            return "Near Gale. Wave Height: 5.5 Metres.";
+        }
+        else if (windSpeed >= 34 && windSpeed <= 40)
+        {
+            return "Gale. Wave Height: 7.5 Metres.";
+        }
+        else if (windSpeed >= 41 && windSpeed <= 47)
+        {
+            return "Strong Gale. Wave Height: 10 Metres.";
+        }
+        else if (windSpeed >= 48 && windSpeed <= 55)
+        {
+            return "Storm. Wave Height: 12.5 Metres.";
+        }
+        else if (windSpeed >= 56 && windSpeed <= 63)
+        {
+            return "Violent Storm. Wave Height: 16 Metres.";
+        }
+        else
+        {
+            return "Hurricane.";
+        }
+    }
+
+    public string GetCardinalDirection(int direction)
+    {
+        string[] directions = { "N", "NE", "E", "SE", "S", "SW", "W", "NW" };
+        int index = (int)Math.Round(((double)direction % 360) / 45);
+        return directions[index % 8];
+    }
+}
+

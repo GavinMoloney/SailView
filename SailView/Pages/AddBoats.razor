@@ -1,0 +1,78 @@
+﻿@page "/addboats"
+@attribute [Authorize]
+@using SailView.Services;
+@using SailView.Data.Models;
+@using System.Text.RegularExpressions
+@using System.ComponentModel.DataAnnotations
+@inject BoatService boatService;
+@inject NavigationManager NavigationManager;
+@inject ISnackbar SnackBar;
+
+<br/>
+<br/>
+
+<h1>Add Boat to Database</h1>
+
+<br/>
+<EditForm Model=@boatDetails OnValidSubmit="HandleSubmit" OnInvalidSubmit="FieldsErrorNotifacation">
+    <DataAnnotationsValidator />
+    <MudCard>
+        <MudCardContent>
+
+            <MudTextField @bind-Value="@boatDetails.BoatName" Label="Boat Name" For="@(() => boatDetails.BoatName)" Variant="Variant.Text"></MudTextField>
+            <MudTextField @bind-Value="@boatDetails.SailNumber" Label="Sail Number" For="@(() => boatDetails.SailNumber)" Variant="Variant.Text"></MudTextField>
+            <ValidationMessage For="@(() => @boatDetails.SailNumber)"/>
+            @if (!IsSailNumberUnique(@boatDetails.SailNumber))
+                {
+                    <ValidationMessage For="@(() => @boatDetails.SailNumber)" Class="mud-text-danger">Sail Number must be unique</ValidationMessage>
+                }
+            <MudSelect @bind-Value=@boatDetails.BoatType Label="Boat Class" For="@(() => boatDetails.BoatType)" HelperText="Type of Boat" Placeholder="Please Select" AdornmentColor="Color.Primary">
+                <MudSelectItem Value="@("1720")">1720</MudSelectItem>
+                <MudSelectItem Value="@("Sloop")">Sloop </MudSelectItem>
+            </MudSelect>
+            <br />
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" ButtonType="ButtonType.Submit" Disabled="!IsSailNumberUnique(boatDetails.SailNumber)">Add Boat</MudButton>
+            <MudButton Variant="Variant.Filled" Color="Color.Secondary" ButtonType="ButtonType.Reset">Reset</MudButton>
+            <MudButton Variant="Variant.Filled" Color="Color.Default" Href="Boats">Cancel</MudButton>
+
+        </MudCardContent>
+    </MudCard>
+
+</EditForm>
+
+@code {
+    BoatDetails boatDetails = new BoatDetails();
+
+    //private string _sailNumber;
+
+    private bool IsSailNumberUnique(string _sailNumber)
+    {
+        return !boatService.GetAllBoats().Any(b => b.SailNumber == _sailNumber);
+    }
+
+    public void HandleSubmit(EditContext editContext)
+    {
+        try
+        {
+            var newBoat = (BoatDetails)editContext.Model;
+            newBoat.CreatedDate = DateTime.Now;
+            boatService.AddBoat(newBoat);
+            SnackBar.Add("Boat is added successfully", Severity.Success);
+            NavigationManager.NavigateTo("Boats");  //returns to 'boats' list page
+        }
+        catch (Exception ex)
+        {
+            SnackBar.Add($"Error: {ex.Message}", Severity.Error);
+        }
+    }
+
+    void Cancel()
+    {
+        NavigationManager.NavigateTo("Boats");
+    }
+    void FieldsErrorNotifacation()
+    {
+        SnackBar.Add("All Fields Must Be Entered Correctly!", Severity.Error);
+    }
+
+}

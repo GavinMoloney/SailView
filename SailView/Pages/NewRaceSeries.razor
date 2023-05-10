@@ -1,0 +1,95 @@
+﻿@page "/createseries"
+@attribute [Authorize]
+@using SailView.Data.Models;
+@using SailView.Services;
+@inject NavigationManager NavigationManager;
+@inject RaceService raceService
+@inject ResultService resultService
+
+<br/>
+<h3>New One Design Race Series</h3>
+
+<MudTextField Label="Series name" @bind-Value="series.Name"></MudTextField>
+
+<MudSelect T="Races" MultiSelection SelectedValues="selectedRaces" SelectedValuesChanged="selectedRacesChanged" Label="Select Races From List">
+    @foreach (var item in races.Where(HasOneBoatType))
+    {
+        <MudSelectItem Value="@item">@item.RaceId</MudSelectItem>
+    }
+</MudSelect>
+
+
+<MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="CreateSeries">Create</MudButton>
+<MudButton Variant="Variant.Filled" Color="Color.Default" Href="seriesresults">Cancel</MudButton>
+
+@code {
+    private string seriesName;
+    private Series series = new Series();
+    private List<Races> races = new List<Races>();
+    private List<Races> selectedRaces = new List<Races>();
+
+    protected override void OnInitialized()
+    {
+        races = raceService.GetAllRaces();
+    }
+
+    private void selectedRacesChanged(IEnumerable<Races> races)
+    {
+        selectedRaces = races.ToList();
+    }
+
+    private bool HasOneBoatType(Races race)
+    {
+        return race.BoatRaces.Select(br => br.BoatDetails.BoatType).Distinct().Count() == 1;
+    }
+
+    // if boat is not in all races it is added
+    private void AddMissingBoatsToRaces(List<Races> selectedRaces)
+    {
+        var uniqueBoats = selectedRaces
+            .SelectMany(race => race.BoatRaces)
+            .GroupBy(boatRace => new { boatRace.BoatDetails.BoatName, boatRace.BoatDetails.SailNumber })
+            .Select(group => group.First().BoatDetails)
+            .ToList();
+
+        foreach (var race in selectedRaces)
+        {
+            foreach (var uniqueBoat in uniqueBoats)
+            {
+                var boatInRace = race.BoatRaces.Any(boatRace => boatRace.BoatDetails.BoatName == uniqueBoat.BoatName && boatRace.BoatDetails.SailNumber == uniqueBoat.SailNumber);
+
+                if (!boatInRace)
+                {
+                    race.BoatRaces.Add(new BoatRaces
+                        {
+                            BoatDetails = uniqueBoat,
+                            Position = race.BoatRaces.Count + 1,
+                            Points = race.BoatRaces.Count + 1,
+                            FinishingStatus = "DNS",
+                            TimingRecord = TimeSpan.Zero
+                        });
+                }
+            }
+        }
+    }
+
+
+    private void CreateSeries()
+    {
+        AddMissingBoatsToRaces(selectedRaces);
+        series.Races = selectedRaces;
+        resultService.CreateSeries(series);
+        NavigationManager.NavigateTo("/seriesresults");
+    }
+
+    void Cancel()
+    {
+        NavigationManager.NavigateTo("/seriesresults");
+    }
+
+    //for unit test
+    public bool TestHasOneBoatType(Races race) => HasOneBoatType(race);
+    public Series TestSeries => series;
+    public List<Races> TestSelectedRaces => selectedRaces;
+    public Task TestCreateSeries() => Task.Run(() => CreateSeries());
+}

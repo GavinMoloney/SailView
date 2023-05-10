@@ -1,0 +1,30 @@
+﻿@using SailView.Data.Models.Weather
+<br/>
+<h3>Select Location</h3>
+<br/>
+
+<div class="card-group">
+    @foreach (var location in Locations)
+    {
+        <MudCard Outlined="true">
+            <MudCardContent>
+                <p class="card-title d-inline">
+                    @location.name
+                </p>
+                <p class="d-inline">
+                    <img src="@location.countryFlagImgSrc" class="mb-1" height="15" />
+                </p>
+                <p class="card-text">@location.state - @location.country</p>
+            </MudCardContent>
+            <div class="card-footer text-center">
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" ButtonType="ButtonType.Button" @onclick="() => OnSelectLocation.InvokeAsync(location)">Select</MudButton>
+                
+            </div>
+        </MudCard>
+    }
+</div>
+
+@code {
+    [Parameter] public IEnumerable<LocationDTO>? Locations { get; set; }
+    [Parameter] public EventCallback<LocationDTO> OnSelectLocation { get; set; }
+}

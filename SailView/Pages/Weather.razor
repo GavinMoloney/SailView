@@ -1,0 +1,169 @@
+﻿@page "/weather"
+@attribute [Authorize]
+@using System.Text
+@using SailView.Data.Models.Weather
+@using Darnton.Blazor.Leaflet.LeafletMap;
+@using SailView.Services
+@using Microsoft.AspNetCore.Components;
+@using SailView.Services.Interfaces
+@using SailView.Data.Models.Weather.OpenWeather
+@using System.Threading
+@using Microsoft.Extensions.Configuration;
+@using Microsoft.Extensions.Options;
+@*@using BrowserInterop.Extensions
+@using BrowserInterop.Geolocation*@
+@using Darnton.Blazor.DeviceInterop.Geolocation;
+@inherits GeolocationBase
+@inject IGeolocationService GeolocationService
+@inject IJSRuntime JSRuntime
+@inject ILocationService LocationService
+@inject IHttpClientFactory HttpClientFactory
+
+<br/>
+<h2>Weather</h2>
+
+
+<MudCard class="my-3" Elevation="3">
+    <MudCardContent>
+        <MudText Typo="Typo.h5">Current Position</MudText>
+        <br />
+    <MudGrid>
+        <MudItem xs="12" md="6">
+                <MudTypography Variant="TypographyVariant.h3" GutterBottom="true"><b><u>Position:</u></b></MudTypography>
+            @if (CurrentPositionResult?.Position is null)
+            {
+                <MudTypography Variant="TypographyVariant.body1" Color="Color.Error">Unknown. Refresh page and allow location services.</MudTypography>
+            }
+            else
+            {
+                <div>
+                        <MudTypography Variant="TypographyVariant.subtitle1" Inline="true"><b>Latitude: </b></MudTypography>
+                    <MudTypography Variant="TypographyVariant.subtitle1" Color="Color.Primary" Inline="true">@CurrentPositionResult.Position?.Coords?.Latitude.ToString("F4") °</MudTypography>
+                </div>
+                <div>
+                        <MudTypography Variant="TypographyVariant.subtitle1" Inline="true"><b>Longitude: </b></MudTypography>
+                    <MudTypography Variant="TypographyVariant.subtitle1" Color="Color.Primary" Inline="true">@CurrentPositionResult.Position?.Coords?.Longitude.ToString("F4") °</MudTypography>
+                </div>
+                @if (CurrentPositionResult?.Position != null)
+                {
+                    <div>
+                            <MudTypography Variant="TypographyVariant.subtitle1" Inline="true"><b>Town: </b></MudTypography>
+                        <MudTypography Variant="TypographyVariant.subtitle1" Color="Color.Primary" Inline="true">@CityName</MudTypography>
+                    </div>
+                    <div>
+                            <MudTypography Variant="TypographyVariant.subtitle1" Inline="true"><b>Approximate Location: </b></MudTypography>
+                        <MudTypography Variant="TypographyVariant.subtitle1" Color="Color.Primary" Inline="true">@ReverseGeocodingResult</MudTypography>
+                    </div>
+                }
+            }
+        </MudItem>
+    </MudGrid>
+
+        <br />
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" Class="my-3" OnClick="@ShowCurrentPosition">Current Location</MudButton>
+        @if (CurrentPositionResult?.Error != null)
+        {
+            <div class="bg-light text-danger p-2 mt-3">@CurrentPositionResult.Error.Message</div>
+        }
+    </MudCardContent>
+</MudCard>
+
+
+@if (weather != null)
+{
+    <MudButton Variant="Variant.Filled" Color="Color.Primary" ButtonType="ButtonType.Submit" @onclick="() => weather = null">Back to search</MudButton>
+
+    <WeatherDisplay Weather="weather" />
+
+}
+else
+{
+    <LocationSearch OnSelectLocation="HandleSelectLocation" PreselectedLocation="locationFromReverseGeocoding" />
+
+}
+<br />
+
+
+@code {
+    [Inject] ReverseGeocodingService? ReverseGeocodingService { get; set; }
+    string DebugInfo { get; set; } = "";
+    string ReverseGeocodingResult { get; set; } = "";
+    string PngImage = string.Empty;
+    bool isLoading = true;
+    protected GeolocationResult? CurrentPositionResult { get; set; }
+    string Latitude = "";
+    string Longitude = "";
+    string CityName { get; set; } = "";
+
+    [Inject] IOpenWeatherService OpenWeatherService { get; set; }
+
+    WeatherDTO? weather;
+
+
+    private async Task HandleSelectLocation(LocationDTO location) =>
+        weather = await OpenWeatherService.GetWeather(location);
+
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await UpdateCurrentPosition();
+        }
+    }
+    private async Task ShowCurrentPosition()
+    {
+        await UpdateCurrentPosition();
+    }
+
+
+    private async Task UpdateCurrentPosition()
+    {
+        CurrentPositionResult = await GeolocationService.GetCurrentPosition();
+
+        if (CurrentPositionResult.IsSuccess)
+        {
+            string? CurrentLatitude = CurrentPositionResult.Position?.Coords?.Latitude.ToString("F2");
+            string? CurrentLongitude = CurrentPositionResult.Position?.Coords?.Longitude.ToString("F2");
+            if (CurrentLatitude != null && CurrentLongitude != null)
+            {
+                Latitude = Convert.ToDouble(CurrentLatitude).ToString();
+                Longitude = Convert.ToDouble(CurrentLongitude).ToString();
+            }
+        }
+        StateHasChanged();
+        await UpdateReverseGeocodingResult();
+    }
+
+    private LocationDTO? locationFromReverseGeocoding;
+
+    private async Task UpdateReverseGeocodingResult()
+    {
+        if (CurrentPositionResult?.Position != null)
+        {
+            DebugInfo = "Attempting reverse geocoding...";
+            StateHasChanged();
+            var result = await ReverseGeocodingService.GetAddressFromCoordinatesAsync(CurrentPositionResult.Position.Coords.Latitude, CurrentPositionResult.Position.Coords.Longitude);
+            ReverseGeocodingResult = result?.DisplayName;
+
+            CityName = result?.CityName;
+
+            DebugInfo = "Reverse geocoding complete.";
+
+            locationFromReverseGeocoding = new LocationDTO { name = CityName };
+        }
+        else
+        {
+            DebugInfo = "No position available.";
+        }
+        StateHasChanged();
+    }
+
+
+
+    public class GeoCoords
+    {
+        public double Accuracy { get; set; }
+    }
+
+}

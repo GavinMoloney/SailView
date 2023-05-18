@@ -29,44 +29,39 @@
         <br />
     <MudGrid>
         <MudItem xs="12" md="6">
-                <MudTypography Variant="TypographyVariant.h3" GutterBottom="true"><b><u>Position:</u></b></MudTypography>
-            @if (CurrentPositionResult?.Position is null)
+            <MudTypography Variant="TypographyVariant.h3" GutterBottom="true"><b><u>Position:</u></b></MudTypography>
+            @if (Latitude == "" || Longitude == "")
             {
                 <MudTypography Variant="TypographyVariant.body1" Color="Color.Error">Unknown. Refresh page and allow location services.</MudTypography>
             }
             else
             {
                 <div>
-                        <MudTypography Variant="TypographyVariant.subtitle1" Inline="true"><b>Latitude: </b></MudTypography>
-                    <MudTypography Variant="TypographyVariant.subtitle1" Color="Color.Primary" Inline="true">@CurrentPositionResult.Position?.Coords?.Latitude.ToString("F4") °</MudTypography>
+                    <MudTypography Variant="TypographyVariant.subtitle1" Inline="true"><b>Latitude: </b></MudTypography>
+                    <MudTypography Variant="TypographyVariant.subtitle1" Color="Color.Primary" Inline="true">@Math.Round(Convert.ToDouble(Latitude), 4) °</MudTypography>
                 </div>
                 <div>
-                        <MudTypography Variant="TypographyVariant.subtitle1" Inline="true"><b>Longitude: </b></MudTypography>
-                    <MudTypography Variant="TypographyVariant.subtitle1" Color="Color.Primary" Inline="true">@CurrentPositionResult.Position?.Coords?.Longitude.ToString("F4") °</MudTypography>
+                    <MudTypography Variant="TypographyVariant.subtitle1" Inline="true"><b>Longitude: </b></MudTypography>
+                    <MudTypography Variant="TypographyVariant.subtitle1" Color="Color.Primary" Inline="true">@Math.Round(Convert.ToDouble(Longitude), 4) °</MudTypography>
                 </div>
-                @if (CurrentPositionResult?.Position != null)
-                {
-                    <div>
-                            <MudTypography Variant="TypographyVariant.subtitle1" Inline="true"><b>Town: </b></MudTypography>
-                        <MudTypography Variant="TypographyVariant.subtitle1" Color="Color.Primary" Inline="true">@CityName</MudTypography>
-                    </div>
-                    <div>
-                            <MudTypography Variant="TypographyVariant.subtitle1" Inline="true"><b>Approximate Location: </b></MudTypography>
-                        <MudTypography Variant="TypographyVariant.subtitle1" Color="Color.Primary" Inline="true">@ReverseGeocodingResult</MudTypography>
-                    </div>
-                }
+
+                <div>
+                    <MudTypography Variant="TypographyVariant.subtitle1" Inline="true"><b>Town: </b></MudTypography>
+                    <MudTypography Variant="TypographyVariant.subtitle1" Color="Color.Primary" Inline="true">@CityName</MudTypography>
+                </div>
+                <div>
+                    <MudTypography Variant="TypographyVariant.subtitle1" Inline="true"><b>Approximate Location: </b></MudTypography>
+                    <MudTypography Variant="TypographyVariant.subtitle1" Color="Color.Primary" Inline="true">@ReverseGeocodingResult</MudTypography>
+                </div>
             }
         </MudItem>
     </MudGrid>
 
         <br />
         <MudButton Variant="Variant.Filled" Color="Color.Primary" Class="my-3" OnClick="@ShowCurrentPosition">Current Location</MudButton>
-        @if (CurrentPositionResult?.Error != null)
-        {
-            <div class="bg-light text-danger p-2 mt-3">@CurrentPositionResult.Error.Message</div>
-        }
     </MudCardContent>
 </MudCard>
+
 
 
 @if (weather != null)
@@ -94,6 +89,18 @@ else
     string Latitude = "";
     string Longitude = "";
     string CityName { get; set; } = "";
+    private MyPosition? myPosition;
+    public class MyPosition
+    {
+        public MyCoordinates Coords { get; set; }
+    }
+
+    public class MyCoordinates
+    {
+        public double Latitude { get; set; }
+        public double Longitude { get; set; }
+    }
+
 
     [Inject] IOpenWeatherService OpenWeatherService { get; set; }
 
@@ -119,31 +126,43 @@ else
 
     private async Task UpdateCurrentPosition()
     {
-        CurrentPositionResult = await GeolocationService.GetCurrentPosition();
-
-        if (CurrentPositionResult.IsSuccess)
+        try
         {
-            string? CurrentLatitude = CurrentPositionResult.Position?.Coords?.Latitude.ToString("F2");
-            string? CurrentLongitude = CurrentPositionResult.Position?.Coords?.Longitude.ToString("F2");
-            if (CurrentLatitude != null && CurrentLongitude != null)
+            var location = await JSRuntime.InvokeAsync<Dictionary<string, double>>("getUserLocation");
+
+    // Create a new MyPosition
+            MyPosition myPosition = new MyPosition
             {
-                Latitude = Convert.ToDouble(CurrentLatitude).ToString();
-                Longitude = Convert.ToDouble(CurrentLongitude).ToString();
-            }
+                Coords = new MyCoordinates
+                {
+                    Latitude = location["latitude"],
+                    Longitude = location["longitude"]
+                }
+            };
+
+            Latitude = myPosition.Coords.Latitude.ToString();
+            Longitude = myPosition.Coords.Longitude.ToString();
+
+            StateHasChanged();
+            await UpdateReverseGeocodingResult(myPosition);
         }
-        StateHasChanged();
-        await UpdateReverseGeocodingResult();
+        catch (Exception ex)
+        {
+    // Handle the error
+            Console.WriteLine(ex.Message);
+        }
     }
+
 
     private LocationDTO? locationFromReverseGeocoding;
 
-    private async Task UpdateReverseGeocodingResult()
+    private async Task UpdateReverseGeocodingResult(MyPosition myPosition)
     {
-        if (CurrentPositionResult?.Position != null)
+        if (myPosition != null)
         {
             DebugInfo = "Attempting reverse geocoding...";
             StateHasChanged();
-            var result = await ReverseGeocodingService.GetAddressFromCoordinatesAsync(CurrentPositionResult.Position.Coords.Latitude, CurrentPositionResult.Position.Coords.Longitude);
+            var result = await ReverseGeocodingService.GetAddressFromCoordinatesAsync(myPosition.Coords.Latitude, myPosition.Coords.Longitude);
             ReverseGeocodingResult = result?.DisplayName;
 
             CityName = result?.CityName;
@@ -158,6 +177,7 @@ else
         }
         StateHasChanged();
     }
+
 
 
 

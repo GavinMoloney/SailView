@@ -73,14 +73,37 @@
         }
     }
 
-
+    // concatenate helm name if more than 1 name
     private void CreateSeries()
     {
         AddMissingBoatsToRaces(selectedRaces);
+
+    // Group BoatRaces by BoatName and SailNumber and select distinct HelmNames
+        var helmNamesByBoat = selectedRaces
+            .SelectMany(race => race.BoatRaces)
+            .GroupBy(boatRace => new { boatRace.BoatDetails.BoatName, boatRace.BoatDetails.SailNumber })
+            .ToDictionary(
+                group => group.Key,
+                group => string.Join(", ", group.Select(br => br.HelmName).Distinct()));
+
+    // Assign concatenated HelmNames to the respective BoatRaces
+        foreach (var race in selectedRaces)
+        {
+            foreach (var boatRace in race.BoatRaces)
+            {
+                var key = new { boatRace.BoatDetails.BoatName, boatRace.BoatDetails.SailNumber };
+                if (helmNamesByBoat.TryGetValue(key, out var helmNames))
+                {
+                    boatRace.HelmName = helmNames;
+                }
+            }
+        }
+
         series.Races = selectedRaces;
         resultService.CreateSeries(series);
         NavigationManager.NavigateTo("/seriesresults");
     }
+
 
     void Cancel()
     {

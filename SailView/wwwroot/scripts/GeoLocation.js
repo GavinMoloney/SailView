@@ -76,7 +76,7 @@ window.getGeolocation = (latitudeId, longitudeId) => {
 };
 
 
-function addMap() {
+/*function addMap() {
     var map = L.map('map').setView([51.505, -0.09], 13);
     L.titleLayer('http://tile.openweathermap.org/map/{layer}/{z}/{x}/{y}.png?appid={apikey}', {
         attribution: 'Map data &copy; <a href="http://openweathermap.org">OpenWeatherMap</a>',
@@ -84,4 +84,4 @@ function addMap() {
         layer: 'wind_new',
         apikey = 'f799f32ab495b987f4af22e1de392ba2'
     }).addTo(map);
-}
+}*/

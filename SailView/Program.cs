@@ -16,7 +16,7 @@ using Syncfusion.Blazor;
 var builder = WebApplication.CreateBuilder(args);
 
 //for X-Forward-For headers
-builder.Services.Configure<ForwardedHeadersOptions>(options =>
+/*builder.Services.Configure<ForwardedHeadersOptions>(options =>
 {
     options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
 });
@@ -44,7 +44,7 @@ builder.Services.Configure<CookiePolicyOptions>(options =>
     options.MinimumSameSitePolicy = SameSiteMode.Strict;
     options.HttpOnly = HttpOnlyPolicy.Always;
     options.Secure = CookieSecurePolicy.Always;
-});
+});*/
 
 
 // Add services to the container.
@@ -81,7 +81,7 @@ builder.Services.AddScoped<Darnton.Blazor.DeviceInterop.Geolocation.IGeolocation
 //.AddRoles<IdentityRole>();
 
 // Add HTTPS enforcement and redirection
-builder.Services.AddHsts(options =>
+/*builder.Services.AddHsts(options =>
 {
     options.Preload = true;
     options.IncludeSubDomains = true;
@@ -92,12 +92,13 @@ builder.Services.AddHttpsRedirection(options =>
 {
     options.RedirectStatusCode = StatusCodes.Status308PermanentRedirect;
     options.HttpsPort = 443;
-});
+});*/
 
 var app = builder.Build();
 
 //Register Syncfusion license
 Syncfusion.Licensing.SyncfusionLicenseProvider.RegisterLicense("MTI1MDM4NEAzMjMwMmUzNDJlMzBiKzhEZkFORVdrSnE5Vm9oMUM3Qjh3cjVINm1kVzI2dFZ6dGl1dVNqVlJnPQ==");
+
 
 //// Configure the HTTP request pipeline.
 //if (!app.Environment.IsDevelopment())
@@ -145,15 +146,15 @@ app.MapBlazorHub();
 //});
 
 // low restriction csp header
-app.Use(async (context, next) =>
+/*app.Use(async (context, next) =>
 {
     context.Response.Headers["Content-Security-Policy"] = "default-src * 'self' data: blob: 'unsafe-inline' 'unsafe-eval';";
     await next();
-});
+});*/
 
 
 //anti-csrf
-app.Use(async (context, next) =>
+/*app.Use(async (context, next) =>
 {
     if (string.Equals(context.Request.Path.Value, "/_blazor", StringComparison.OrdinalIgnoreCase) &&
         string.Equals(context.Request.Method, "POST", StringComparison.OrdinalIgnoreCase))
@@ -163,24 +164,24 @@ app.Use(async (context, next) =>
     }
 
     await next();
-});
+});*/
 
 //remove server from header
-app.Use(async (context, next) =>
+/*app.Use(async (context, next) =>
 {
     context.Response.Headers.Remove("Server");
     await next();
-});
+});*/
 
 //cookies
-app.UseCookiePolicy();
+//app.UseCookiePolicy();
 
 //no sniff
-app.Use(async (context, next) =>
+/*app.Use(async (context, next) =>
 {
     context.Response.Headers.Add("X-Content-Type-Options", "nosniff");
     await next();
-});
+});*/
 
 app.MapFallbackToPage("/_Host");
 

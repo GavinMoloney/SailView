@@ -16,7 +16,25 @@ namespace SailView.Data.Models
         public int? BoatDetailsID { get; set; }
         public Series? Series { get; set; }
         public int? SeriesId { get; set; }
+        private string? _raceComment;
 
+        public string? RaceComment
+        {
+            get { return _raceComment; }
+            set 
+            {
+                if (string.IsNullOrEmpty(value))
+                {
+                    _raceComment = "No comments";
+                }
+                else
+                {
+                    _raceComment = value;
+                }
+            }
+        }
+
+        
         [NotMapped]
         public bool ShowBoatDetails { get; set; } = false;
         //public List<HandicapRaceDTO> HandicapRaces { get; set; }

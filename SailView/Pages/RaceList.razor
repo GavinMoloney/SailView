@@ -39,12 +39,14 @@ else
             <MudTh>Id</MudTh>
             <MudTh>Race ID</MudTh>
             <MudTh>Date Added</MudTh>
+            <MudTh>Race Comment</MudTh>
             <MudTh></MudTh>
         </HeaderContent>
         <RowTemplate>
             <MudTd DataLabel="Id">@context.Id</MudTd>
             <MudTd DataLabel="RaceId">@context.RaceId</MudTd>
             <MudTd DataLabel="RaceTime">@context.CreatedDate</MudTd>
+            <MudTd DataLabel="RaceComment"><MudText>@context.RaceComment</MudText></MudTd>
             <MudTd><MudButton Variant="Variant.Outlined" Size="Size.Small" OnClick="@(() => context.ShowBoatDetails = !context.ShowBoatDetails)">@((context.ShowBoatDetails == true) ? "Hide" : "Show") Race Results</MudButton></MudTd>
         </RowTemplate>
         <ChildRowContent>
@@ -84,8 +86,9 @@ else
                                     </HeaderContent>
                                     <RowTemplate>
 
-                                        <MudTd DataLabel="Position">@(CalculatePosition(BoatContext, context))</MudTd>                                        <MudTd DataLabel="Name">@BoatContext.BoatDetails.BoatName</MudTd>
-                                        <MudTd DataLabel="Name">@BoatContext.BoatDetails.SailNumber</MudTd>
+                                        <MudTd DataLabel="Position">@(CalculatePosition(BoatContext, context))</MudTd>                                        
+                                        <MudTd DataLabel="Name">@BoatContext.BoatDetails.BoatName</MudTd>
+                                        <MudTd DataLabel="Number">@BoatContext.BoatDetails.SailNumber</MudTd>
                                         <MudTd DataLabel="Type">@BoatContext.BoatDetails.BoatType</MudTd>
                                         <MudTd DataLabel="Helm">@BoatContext.HelmName</MudTd>
                                         <MudTd DataLabel="Time">@BoatContext.TimingRecord</MudTd>

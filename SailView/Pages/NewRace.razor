@@ -59,6 +59,9 @@
                     </PagerContent>
                 </MudTable>
                 <br/>
+                <MudTextField @bind-Value="@race.RaceComment" For="@(()=>race.RaceComment)" Label="Enter Race Comments" Variant="Variant.Text"></MudTextField>
+
+                <br/>
                 @*<MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="AddBoat">Create New Boat</MudButton>*@
                 <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="AddSelectedBoat">Select Boat</MudButton>
                 <MudButton Variant="Variant.Filled" Color="Color.Secondary" ButtonType="ButtonType.Reset">Reset</MudButton>
@@ -75,8 +78,7 @@
     </MudCard>
 </EditForm>
 
-
-                @code {
+@code {
     Races race = new Races();
     private string searchString1 = "";
     private BoatDetails selectedBoat { get; set; } = new();
@@ -84,12 +86,14 @@
     private int Position { get; set; }
     private string FinishingStatus { get; set; }
 
+    public bool ConfirmSubmit { get; set; } = false;
+
     public void HandleSubmit(EditContext editContext)
     {
         var newRace = (Races)editContext.Model;
         newRace.CreatedDate = DateTime.Now;
-        //foreach (var item in selectedValues)
-        // newRace.BoatRaces.Add(item);
+    //foreach (var item in selectedValues)
+    // newRace.BoatRaces.Add(item);
         foreach (var item in newRace.BoatRaces)
         {
             item.BoatDetails = null!;
@@ -98,6 +102,9 @@
         race = new();
         NavigationManager.NavigateTo("RaceList");
     }
+
+
+
     void Cancel()
     {
         NavigationManager.NavigateTo("RaceList");

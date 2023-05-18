@@ -115,6 +115,9 @@ namespace SailView.Migrations
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("RaceComment")
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("RaceId")
                         .IsRequired()
                         .HasColumnType("TEXT");

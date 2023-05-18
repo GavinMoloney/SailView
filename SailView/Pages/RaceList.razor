@@ -77,6 +77,7 @@ else
                                         <MudTh>Boat Name</MudTh>
                                         <MudTh>Sail Number</MudTh>
                                         <MudTh>Boat Class</MudTh>
+                                        <MudTh>Helm</MudTh>
                                         <MudTh>Elapsed Time</MudTh>
                                         <MudTh>Finishing Status</MudTh>
                                         <MudTh>Points</MudTh>
@@ -86,6 +87,7 @@ else
                                         <MudTd DataLabel="Position">@(CalculatePosition(BoatContext, context))</MudTd>                                        <MudTd DataLabel="Name">@BoatContext.BoatDetails.BoatName</MudTd>
                                         <MudTd DataLabel="Name">@BoatContext.BoatDetails.SailNumber</MudTd>
                                         <MudTd DataLabel="Type">@BoatContext.BoatDetails.BoatType</MudTd>
+                                        <MudTd DataLabel="Helm">@BoatContext.HelmName</MudTd>
                                         <MudTd DataLabel="Time">@BoatContext.TimingRecord</MudTd>
                                         <MudTd DataLabel="Status">@BoatContext.FinishingStatus</MudTd>
                                         <MudTd DataLabel="Points">@(BoatContext.FinishingStatus != "Finished" ? context.BoatRaces.Count + 1 : BoatContext.Position)</MudTd>

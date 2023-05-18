@@ -14,7 +14,7 @@ namespace SailView.Data.Models
         public string? BoatName { get; set; }
 
         [Required(ErrorMessage = "Please Enter Sail Number")]
-        [StringLength(20, MinimumLength = 3, ErrorMessage = "Sail Number must be between 3 and 20 characters")]
+        [StringLength(20, ErrorMessage = "Sail Number must be less than 21 characters")]
         public string? SailNumber { get; set; }
 
         [Required(ErrorMessage = "Please Enter Boat Type")]

@@ -35,6 +35,7 @@
                     <HeaderContent>
                         <MudTh>Position</MudTh>
                         <MudTh>Boat Name</MudTh>
+                        <MudTh>Helm</MudTh>
                         <MudTh>Boat Type</MudTh>
                         <MudTh>Sail Number</MudTh>
                         <MudTh>Time</MudTh>
@@ -43,6 +44,7 @@
                     <RowTemplate Context="boatDetails">
                         <MudTd DataLabel="Position">@boatDetails.Position</MudTd>
                         <MudTd DataLabel="BoatName">@boatDetails.BoatDetails.BoatName</MudTd>
+                        <MudTd DataLabel="HelmName">@boatDetails.HelmName</MudTd>
                         <MudTd DataLabel="BoatType">@boatDetails.BoatDetails.BoatType</MudTd>
                         <MudTd DataLabel="SailNumber">@boatDetails.BoatDetails.SailNumber</MudTd>
                         <MudTd DataLabel="Time">

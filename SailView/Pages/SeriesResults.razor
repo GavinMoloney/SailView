@@ -35,14 +35,16 @@
         <MudTh>Boat Name</MudTh>
         <MudTh>Sail Number</MudTh>
         <MudTh>Boat Class</MudTh>
+        <MudTh>Helm</MudTh>
         <MudTh>Total Race Time</MudTh>
         <MudTh><MudTableSortLabel InitialDirection="SortDirection.Ascending" SortBy="new Func<ResultDTO, object>(x=>x.Points)">Points</MudTableSortLabel></MudTh>
     </HeaderContent>
     <RowTemplate>
         <MudTd DataLabel="Position">@(++_currentRowIndex)</MudTd>
-            <MudTd DataLabel="Id">@context.Name</MudTd>
+            <MudTd DataLabel="Name">@context.Name</MudTd>
             <MudTd DataLabel="Sail Number">@context.SailNumber</MudTd>
-            <MudTd DataLabel="Class">@context.BoatType</MudTd>
+        <MudTd DataLabel="Class">@context.BoatType</MudTd>
+        @* <MudTd DataLabel="Helm">@context.Helm</MudTd> *@
             <MudTd DataLabel="TotalRaceTime">@context.TotalRaceTime</MudTd>
             <MudTd DataLabel="Points">@context.Points</MudTd>
 

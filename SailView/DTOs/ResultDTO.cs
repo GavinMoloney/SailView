@@ -8,6 +8,7 @@
         public TimeSpan TotalRaceTime { get; set; }
         public string? SailNumber { get; set; }
         public string? BoatType { get; set; }
+        public string HelmName { get; set; }
         public TimeSpan CorrectedTime { get; set; }
         public string? FinishingStatus { get; set; }
     }

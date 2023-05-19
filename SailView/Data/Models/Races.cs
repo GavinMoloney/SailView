@@ -5,7 +5,6 @@ namespace SailView.Data.Models
 {
     public class Races
     {
-
         public int Id { get; set; }
 
         [Required(ErrorMessage = "Race Identifier is Required")]
@@ -16,8 +15,8 @@ namespace SailView.Data.Models
         public int? BoatDetailsID { get; set; }
         public Series? Series { get; set; }
         public int? SeriesId { get; set; }
+        
         private string? _raceComment;
-
         public string? RaceComment
         {
             get { return _raceComment; }
@@ -33,11 +32,9 @@ namespace SailView.Data.Models
                 }
             }
         }
-
         
         [NotMapped]
         public bool ShowBoatDetails { get; set; } = false;
-        //public List<HandicapRaceDTO> HandicapRaces { get; set; }
 
         public virtual ICollection<BoatRaces>? BoatRaces { get; set; } = new List<BoatRaces>();
 
@@ -48,7 +45,5 @@ namespace SailView.Data.Models
 
 
     }
-
-
-
+    
 }

@@ -92,16 +92,22 @@
     {
         var newRace = (Races)editContext.Model;
         newRace.CreatedDate = DateTime.Now;
-    //foreach (var item in selectedValues)
-    // newRace.BoatRaces.Add(item);
+
         foreach (var item in newRace.BoatRaces)
         {
             item.BoatDetails = null!;
         }
+    
+        if (string.IsNullOrEmpty(newRace.RaceComment))
+        {
+            newRace.RaceComment = "No comments";
+        }
+
         raceService.NewRace(newRace);
         race = new();
         NavigationManager.NavigateTo("RaceList");
     }
+
 
 
 

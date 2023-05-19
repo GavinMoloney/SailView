@@ -11,6 +11,7 @@
         public string HelmName { get; set; }
         public TimeSpan CorrectedTime { get; set; }
         public string? FinishingStatus { get; set; }
+        public List<int> Scores { get; set; }
     }
 
 }

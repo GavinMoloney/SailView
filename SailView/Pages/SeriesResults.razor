@@ -188,8 +188,10 @@
                     TotalRaceTime = g.Where(c => c.FinishingStatus == "Finished").Aggregate(TimeSpan.Zero, (total, next) => total + next.TimingRecord),
                     SailNumber = g.Key.SailNumber,
                     BoatType = g.Key.BoatType,
-                    HelmName = string.Join(" & ", g.Select(br => br.HelmName).Distinct())
+                    HelmName = string.Join(" & ", g.Select(br => br.HelmName).Distinct()),
+                    Scores = g.Where(c => c.FinishingStatus == "Finished").Select(c => c.Position).OrderBy(x => x).ToList()
                 }).ToList();
+
         UpdateAverages();
     }
 
@@ -200,23 +202,49 @@
         {
             if (sortedResults[i].Points == sortedResults[i - 1].Points)
             {
-                var lastRaceResults = sortedResults.OrderByDescending(x => x.Position).ToList();
-
-                int index1 = lastRaceResults.FindIndex(x => x.Name == sortedResults[i].Name);
-                int index2 = lastRaceResults.FindIndex(x => x.Name == sortedResults[i - 1].Name);
-
-                if (index1 < index2)
+    // Apply rule A8.1
+                for (int j = 0; j < sortedResults[i].Scores.Count; j++)
                 {
-                    // Swap positions
-                    ResultDTO tempResult = sortedResults[i];
-                    sortedResults[i] = sortedResults[i - 1];
-                    sortedResults[i - 1] = tempResult;
+                    if (sortedResults[i].Scores[j] < sortedResults[i - 1].Scores[j])
+                    {
+                        Swap(sortedResults, i, i - 1);
+                        break;
+                    }
+                    else if (sortedResults[i].Scores[j] > sortedResults[i - 1].Scores[j])
+                    {
+                        break;
+                    }
+                }
+
+    // If rule A8.1 didn't break the tie, apply rule A8.2
+                if (sortedResults[i].Points == sortedResults[i - 1].Points)
+                {
+                    for (int j = sortedResults[i].Scores.Count - 1; j >= 0; j--)
+                    {
+                        if (sortedResults[i].Scores[j] < sortedResults[i - 1].Scores[j])
+                        {
+                            Swap(sortedResults, i, i - 1);
+                            break;
+                        }
+                        else if (sortedResults[i].Scores[j] > sortedResults[i - 1].Scores[j])
+                        {
+                            break;
+                        }
+                    }
                 }
             }
         }
 
         return sortedResults;
     }
+
+    private void Swap(List<ResultDTO> list, int index1, int index2)
+    {
+        ResultDTO tempResult = list[index1];
+        list[index1] = list[index2];
+        list[index2] = tempResult;
+    }
+
 
     private List<BoatPoints> BreakTiesForBoatPoints(List<BoatPoints> sortedBoatPoints)
     {
@@ -324,23 +352,7 @@
             var minTotalRaceTimeBoat = "N/A";
         }
     }
-    private double GetMedianCorrectedTime(List<ResultDTO> results)
-    {
-        int count = results.Count;
-        if (count == 0) return 0;
 
-        var sortedResults = results.OrderBy(x => x.CorrectedTime.TotalMinutes).ToList();
-        int middleIndex = count / 2;
-
-        if (count % 2 == 0)
-        {
-            return (sortedResults[middleIndex - 1].CorrectedTime.TotalMinutes + sortedResults[middleIndex].CorrectedTime.TotalMinutes) / 2;
-        }
-        else
-        {
-            return sortedResults[middleIndex].CorrectedTime.TotalMinutes;
-        }
-    }
 
     private double GetMedianTotalRaceTime(List<ResultDTO> results)
     {

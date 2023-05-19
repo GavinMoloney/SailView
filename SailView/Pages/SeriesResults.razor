@@ -44,7 +44,7 @@
             <MudTd DataLabel="Name">@context.Name</MudTd>
             <MudTd DataLabel="Sail Number">@context.SailNumber</MudTd>
         <MudTd DataLabel="Class">@context.BoatType</MudTd>
-        @* <MudTd DataLabel="Helm">@context.Helm</MudTd> *@
+         <MudTd DataLabel="Helm">@context.HelmName</MudTd> 
             <MudTd DataLabel="TotalRaceTime">@context.TotalRaceTime</MudTd>
             <MudTd DataLabel="Points">@context.Points</MudTd>
 
@@ -187,7 +187,8 @@
                     //total race time
                     TotalRaceTime = g.Where(c => c.FinishingStatus == "Finished").Aggregate(TimeSpan.Zero, (total, next) => total + next.TimingRecord),
                     SailNumber = g.Key.SailNumber,
-                    BoatType = g.Key.BoatType
+                    BoatType = g.Key.BoatType,
+                    HelmName = string.Join(" & ", g.Select(br => br.HelmName).Distinct())
                 }).ToList();
         UpdateAverages();
     }

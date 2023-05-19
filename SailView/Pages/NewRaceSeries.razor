@@ -84,7 +84,7 @@
             .GroupBy(boatRace => new { boatRace.BoatDetails.BoatName, boatRace.BoatDetails.SailNumber })
             .ToDictionary(
                 group => group.Key,
-                group => string.Join(", ", group.Select(br => br.HelmName).Distinct()));
+                group => string.Join(" & ", group.Select(br => br.HelmName).Distinct()));
 
     // Assign concatenated HelmNames to the respective BoatRaces
         foreach (var race in selectedRaces)

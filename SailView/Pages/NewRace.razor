@@ -178,7 +178,8 @@
                     Position = boatDetails.Position,
                     BoatId = boatService.GetBoatByName(boatDetails.BoatName).Id,
                     BoatDetails = boatService.GetBoatByName(boatDetails.BoatName),
-                    FinishingStatus = boatDetails.FinishingStatus
+                    FinishingStatus = boatDetails.FinishingStatus,
+                    HelmName = boatDetails.HelmName
                 };
 
             if (race.BoatRaces.Count == 0 || (race.BoatRaces.Last().Position + 1 == newBoatRace.Position && race.BoatRaces.Last().TimingRecord < newBoatRace.TimingRecord))

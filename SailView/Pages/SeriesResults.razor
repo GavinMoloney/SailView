@@ -29,7 +29,7 @@
     }
 </MudSelect>
 
-<MudTable Items="@BreakTiesForResults(resultDTOs.OrderBy(x => x.Points).ToList())" Hover="true" Breakpoint="Breakpoint.Sm">
+<MudTable Items="@BreakTiesForResults(resultDTOs)" Hover="true" Breakpoint="Breakpoint.Sm">
     <HeaderContent>
         <MudTh>Finishing Position</MudTh>
         <MudTh>Boat Name</MudTh>
@@ -192,6 +192,7 @@
                     Scores = g.Where(c => c.FinishingStatus == "Finished").Select(c => c.Position).OrderBy(x => x).ToList()
                 }).ToList();
 
+        resultDTOs = BreakTiesForResults(resultDTOs);
         UpdateAverages();
     }
 
@@ -235,7 +236,7 @@
             }
         }
 
-        return sortedResults;
+        return sortedResults.OrderBy(r => r.Points).ToList();
     }
 
     private void Swap(List<ResultDTO> list, int index1, int index2)

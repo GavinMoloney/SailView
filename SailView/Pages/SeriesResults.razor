@@ -37,7 +37,7 @@
         <MudTh>Boat Class</MudTh>
         <MudTh>Helm</MudTh>
         <MudTh>Total Race Time</MudTh>
-        <MudTh><MudTableSortLabel InitialDirection="SortDirection.Ascending" SortBy="new Func<ResultDTO, object>(x=>x.Points)">Points</MudTableSortLabel></MudTh>
+<MudTh><MudTableSortLabel InitialDirection="SortDirection.Ascending" SortBy="new Func<ResultDTO, object>(x=>x.Points)">Points</MudTableSortLabel></MudTh>
     </HeaderContent>
     <RowTemplate>
         <MudTd DataLabel="Position">@(++_currentRowIndex)</MudTd>
@@ -177,20 +177,23 @@
             .Count();
         
             //create list
-        resultDTOs = selectedSeries.Races.SelectMany(x => x.BoatRaces)
-            .GroupBy(x => x.BoatDetails)
+        resultDTOs = selectedSeries.Races.SelectMany(x => x.BoatRaces.Select(br => new { BoatRace = br, RaceDate = x.CreatedDate }))
+            .GroupBy(x => x.BoatRace.BoatDetails)
             .Select(g => new ResultDTO()
-                {
-                    Name = g.Key.BoatName,
-                    //points logic
-                    Points = g.Sum(c => c.FinishingStatus == "Finished" ? c.Position : numberOfBoatsInRace + 1),
-                    //total race time
-                    TotalRaceTime = g.Where(c => c.FinishingStatus == "Finished").Aggregate(TimeSpan.Zero, (total, next) => total + next.TimingRecord),
-                    SailNumber = g.Key.SailNumber,
-                    BoatType = g.Key.BoatType,
-                    HelmName = string.Join(" & ", g.Select(br => br.HelmName).Distinct()),
-                    Scores = g.Where(c => c.FinishingStatus == "Finished").Select(c => c.Position).OrderBy(x => x).ToList()
-                }).ToList();
+            {
+                Name = g.Key.BoatName,
+    //points logic
+                Points = g.Sum(c => c.BoatRace.FinishingStatus == "Finished" ? c.BoatRace.Position : numberOfBoatsInRace + 1),
+    //total race time
+                TotalRaceTime = g.Where(c => c.BoatRace.FinishingStatus == "Finished").Aggregate(TimeSpan.Zero, (total, next) => total + next.BoatRace.TimingRecord),
+                SailNumber = g.Key.SailNumber,
+                BoatType = g.Key.BoatType,
+                HelmName = string.Join(" & ", g.Select(br => br.BoatRace.HelmName).Distinct()),
+                Scores = g.Where(c => c.BoatRace.FinishingStatus == "Finished")
+                    .OrderBy(c => c.RaceDate)
+                    .Select(c => c.BoatRace.Position)
+                    .ToList()
+            }).ToList();
 
         resultDTOs = BreakTiesForResults(resultDTOs);
         UpdateAverages();
@@ -203,8 +206,8 @@
         {
             if (sortedResults[i].Points == sortedResults[i - 1].Points)
             {
-    // Apply rule A8.1
-                for (int j = 0; j < sortedResults[i].Scores.Count; j++)
+    // Apply rule A8.2
+                for (int j = sortedResults[i].Scores.Count - 1; j >= 0; j--)
                 {
                     if (sortedResults[i].Scores[j] < sortedResults[i - 1].Scores[j])
                     {
@@ -216,11 +219,11 @@
                         break;
                     }
                 }
-
-    // If rule A8.1 didn't break the tie, apply rule A8.2
+            
+    // If rule A8.2 didn't break the tie, apply rule A8.1
                 if (sortedResults[i].Points == sortedResults[i - 1].Points)
                 {
-                    for (int j = sortedResults[i].Scores.Count - 1; j >= 0; j--)
+                    for (int j = 0; j < sortedResults[i].Scores.Count; j++)
                     {
                         if (sortedResults[i].Scores[j] < sortedResults[i - 1].Scores[j])
                         {
@@ -236,8 +239,10 @@
             }
         }
 
-        return sortedResults.OrderBy(r => r.Points).ToList();
+        return sortedResults;
     }
+
+
 
     private void Swap(List<ResultDTO> list, int index1, int index2)
     {

@@ -200,47 +200,54 @@
     }
 
 
-    private List<ResultDTO> BreakTiesForResults(List<ResultDTO> sortedResults)
+private List<ResultDTO> BreakTiesForResults(List<ResultDTO> sortedResults)
+{
+    for (int i = 1; i < sortedResults.Count; i++)
     {
-        for (int i = 1; i < sortedResults.Count; i++)
+        if (sortedResults[i].Points == sortedResults[i - 1].Points)
         {
+            // Apply rule A8.1
+            for (int j = 0; j < sortedResults[i].Scores.Count; j++)
+            {
+                Console.WriteLine($"Comparing scores for race {j + 1}: Boat {i} - {sortedResults[i].Scores[j]} vs. Boat {i - 1} - {sortedResults[i - 1].Scores[j]}");
+                if (sortedResults[i].Scores[j] < sortedResults[i - 1].Scores[j])
+                {
+                    Console.WriteLine($"Boat {i} won the tie-breaker for race {j + 1}");
+                    Swap(sortedResults, i, i - 1);
+                    break;
+                }
+                else if (sortedResults[i].Scores[j] > sortedResults[i - 1].Scores[j])
+                {
+                    Console.WriteLine($"Boat {i - 1} won the tie-breaker for race {j + 1}");
+                    break;
+                }
+            }
+
+            // If rule A8.1 didn't break the tie, apply rule A8.2
             if (sortedResults[i].Points == sortedResults[i - 1].Points)
             {
-    // Apply rule A8.2
                 for (int j = sortedResults[i].Scores.Count - 1; j >= 0; j--)
                 {
+                    Console.WriteLine($"Applying rule A8.2 for race {j + 1}: Boat {i} - {sortedResults[i].Scores[j]} vs. Boat {i - 1} - {sortedResults[i - 1].Scores[j]}");
                     if (sortedResults[i].Scores[j] < sortedResults[i - 1].Scores[j])
                     {
+                        Console.WriteLine($"Boat {i} won the tie-breaker for race {j + 1} under rule A8.2");
                         Swap(sortedResults, i, i - 1);
                         break;
                     }
                     else if (sortedResults[i].Scores[j] > sortedResults[i - 1].Scores[j])
                     {
+                        Console.WriteLine($"Boat {i - 1} won the tie-breaker for race {j + 1} under rule A8.2");
                         break;
-                    }
-                }
-            
-    // If rule A8.2 didn't break the tie, apply rule A8.1
-                if (sortedResults[i].Points == sortedResults[i - 1].Points)
-                {
-                    for (int j = 0; j < sortedResults[i].Scores.Count; j++)
-                    {
-                        if (sortedResults[i].Scores[j] < sortedResults[i - 1].Scores[j])
-                        {
-                            Swap(sortedResults, i, i - 1);
-                            break;
-                        }
-                        else if (sortedResults[i].Scores[j] > sortedResults[i - 1].Scores[j])
-                        {
-                            break;
-                        }
                     }
                 }
             }
         }
-
-        return sortedResults;
     }
+
+    return sortedResults;
+}
+
 
 
 

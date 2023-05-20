@@ -12,6 +12,8 @@
         public TimeSpan CorrectedTime { get; set; }
         public string? FinishingStatus { get; set; }
         public List<int> Scores { get; set; }
+        public double Total { get; set; } // Total of all scores
+        public double NetTotal { get; set; } // Net total after discards
     }
 
 }

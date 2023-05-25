@@ -68,6 +68,7 @@ else
                             <MudCardHeader>
                                 <CardHeaderContent>
                                     <MudText Typo="Typo.body1">Race Results</MudText>
+                                                    <p class="result-note">Results are provisional as of @DateTime.Now</p>
                                 </CardHeaderContent>
                             </MudCardHeader>
                             <MudCardContent Class="pa-0">
@@ -96,42 +97,42 @@ else
                                         <MudTd DataLabel="Points">@(BoatContext.FinishingStatus != "Finished" ? context.BoatRaces.Count + 1 : BoatContext.Position)</MudTd>
 
                                         <!--<MudTd>
-                                                <a class="nav-link" href="EditRace/@BoatContext.RaceId">
-                                                    <span class="oi oi-pencil" aria-hidden="true"> Edit</span>
-                                                </a>
-                                            </MudTd>-->
+                                            <a class="nav-link" href="EditRace/@BoatContext.RaceId">
+                                                <span class="oi oi-pencil" aria-hidden="true"> Edit</span>
+                                            </a>
+                                        </MudTd>-->
 
                                     </RowTemplate>
-                                <PagerContent>
-                                    <br />
-                                    <MudTablePager />
-                                </PagerContent>
-                            </MudTable>
-                        </MudCardContent>
-                    </MudCard>
-@*                    <br />
+                                    <PagerContent>
+                                        <br />
+                                        <MudTablePager />
+                                    </PagerContent>
+                                </MudTable>
+                            </MudCardContent>
+                        </MudCard>
+                        @*                    <br />
                     <MudButton Variant="Variant.Filled" Color="Color.Secondary" ButtonType="ButtonType.Submit" @onclick=@ExportToPdf>Export to PDF</MudButton>
                     <br />*@
-                    @*chart*@
-                    <SfChart Title="Time">
-                        <ChartPrimaryXAxis ValueType="Syncfusion.Blazor.Charts.ValueType.Category" Title="Boat Name"></ChartPrimaryXAxis>
-                        <ChartPrimaryYAxis Title="Elapsed Time (minutes)"></ChartPrimaryYAxis>
-                        <ChartTooltipSettings Enable="true"></ChartTooltipSettings>
-                        <ChartLegendSettings Visible="true"></ChartLegendSettings>
+                        @*chart*@
+                        <SfChart Title="Time">
+                            <ChartPrimaryXAxis ValueType="Syncfusion.Blazor.Charts.ValueType.Category" Title="Boat Name"></ChartPrimaryXAxis>
+                            <ChartPrimaryYAxis Title="Elapsed Time (minutes)"></ChartPrimaryYAxis>
+                            <ChartTooltipSettings Enable="true"></ChartTooltipSettings>
+                            <ChartLegendSettings Visible="true"></ChartLegendSettings>
                             <ChartZoomSettings EnableSelectionZooming="true" EnablePinchZooming="true" EnableMouseWheelZooming="true" EnableScrollbar="true"
-                                       Mode="Syncfusion.Blazor.Charts.ZoomMode.X">
+                                               Mode="Syncfusion.Blazor.Charts.ZoomMode.X">
                             </ChartZoomSettings>
-                        <ChartSeriesCollection>
-                            <ChartSeries DataSource="@GetChartData(races)[races.IndexOf(context)].OrderByDescending(cd => cd.TimingRecordMinutes)" XName="BoatName" YName="TimingRecordMinutes" Type="ChartSeriesType.Bar">
-                                <ChartMarker>
-                                    <ChartDataLabel Visible="true"></ChartDataLabel>
-                                </ChartMarker>
-                            </ChartSeries>
-                        </ChartSeriesCollection>
-                    </SfChart>
-                    <br/>
-                    <table>
-                        <thead>
+                            <ChartSeriesCollection>
+                                <ChartSeries DataSource="@GetChartData(races)[races.IndexOf(context)].OrderByDescending(cd => cd.TimingRecordMinutes)" XName="BoatName" YName="TimingRecordMinutes" Type="ChartSeriesType.Bar">
+                                    <ChartMarker>
+                                        <ChartDataLabel Visible="true"></ChartDataLabel>
+                                    </ChartMarker>
+                                </ChartSeries>
+                            </ChartSeriesCollection>
+                        </SfChart>
+                        <br/>
+                        <table>
+                            <thead>
                             <tr>
                                 <MudTh></MudTh>
                                 <MudTh><b>Minimum</b></MudTh>
@@ -139,8 +140,8 @@ else
                                 <MudTh><b>Average</b></MudTh>
                                 <MudTh><b>Median</b></MudTh>
                             </tr>
-                        </thead>
-                        <tbody>
+                            </thead>
+                            <tbody>
                             <tr>
                                 <MudTd><b>Elapsed Time</b></MudTd>
                                 <MudTd>@minTimingRecord.TotalMinutes.ToString("0.00") minutes @minTimingBoat.BoatDetails.BoatName (@minTimingBoat.BoatDetails.SailNumber)</MudTd>
@@ -152,43 +153,43 @@ else
                                 <MudTd><b>Time Difference</b></MudTd>
                                 <MudTd colspan="4"><i>Between Max and Min:</i> @timeDifference.TotalMinutes.ToString("0.00") minutes</MudTd>
                             </tr>
-                        </tbody>
-                    </table>
+                            </tbody>
+                        </table>
 
-                    <br />
-                    <SfChart Title="Points">
-                        <ChartPrimaryXAxis ValueType="Syncfusion.Blazor.Charts.ValueType.Category" Title="Boat Name"></ChartPrimaryXAxis>
-                        <ChartPrimaryYAxis Title="Points"></ChartPrimaryYAxis>
-                        <ChartTooltipSettings Enable="true"></ChartTooltipSettings>
-                        <ChartLegendSettings Visible="true"></ChartLegendSettings>
+                        <br />
+                        <SfChart Title="Points">
+                            <ChartPrimaryXAxis ValueType="Syncfusion.Blazor.Charts.ValueType.Category" Title="Boat Name"></ChartPrimaryXAxis>
+                            <ChartPrimaryYAxis Title="Points"></ChartPrimaryYAxis>
+                            <ChartTooltipSettings Enable="true"></ChartTooltipSettings>
+                            <ChartLegendSettings Visible="true"></ChartLegendSettings>
                             <ChartZoomSettings EnableSelectionZooming="true" EnablePinchZooming="true" EnableMouseWheelZooming="true" EnableScrollbar="true"
-                                       Mode="Syncfusion.Blazor.Charts.ZoomMode.X">
+                                               Mode="Syncfusion.Blazor.Charts.ZoomMode.X">
                             </ChartZoomSettings>
-                        <ChartSeriesCollection>
+                            <ChartSeriesCollection>
                                 <ChartSeries DataSource="@GetChartData(races)[races.IndexOf(context)].OrderByDescending(cd => cd.Points)" XName="BoatName" YName="Points" Type="ChartSeriesType.Bar">
-                                <ChartMarker>
-                                    <ChartDataLabel Visible="true"></ChartDataLabel>
-                                </ChartMarker>
-                            </ChartSeries>
-                        </ChartSeriesCollection>
-                    </SfChart>
+                                    <ChartMarker>
+                                        <ChartDataLabel Visible="true"></ChartDataLabel>
+                                    </ChartMarker>
+                                </ChartSeries>
+                            </ChartSeriesCollection>
+                        </SfChart>
 
-                </td>
-            </MudTr>
+                    </td>
+                </MudTr>
             }
+
         </ChildRowContent>
         <PagerContent>
             <MudTablePager />
         </PagerContent>
     </MudTable>
+
     <MudSpacer />
     <br />
-    <MudButton Variant="Variant.Filled" Color="Color.Secondary" ButtonType="ButtonType.Submit" @onclick=@CreatePdf>Export to PDF</MudButton>
+    @* <MudButton Variant="Variant.Filled" Color="Color.Secondary" ButtonType="ButtonType.Submit" @onclick=@CreatePdf>Export to PDF</MudButton> *@
     <br />
 
 }
-
-<p class="result-note">Results are provisional as of @DateTime.Now</p>
 
 @code {
 

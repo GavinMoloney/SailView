@@ -5,7 +5,7 @@
 @using SailView.Data;
 @using System.Linq;
 @inject ExportService exportService
-@inject Microsoft.JSInterop.IJSRuntime JS
+@inject Microsoft.JSInterop.IJSRuntime JsRuntime
 @using System.IO;
 @inject ISnackbar Snackbar
 @using System.Net.Http.Json;
@@ -183,20 +183,12 @@ else
     </MudTable>
     <MudSpacer />
     <br />
-@*    <MudButton Variant="Variant.Filled" Color="Color.Secondary" ButtonType="ButtonType.Submit" @onclick=@ExportToPdf>Export to PDF</MudButton>
-*@    <br />
+    <MudButton Variant="Variant.Filled" Color="Color.Secondary" ButtonType="ButtonType.Submit" @onclick=@CreatePdf>Export to PDF</MudButton>
+    <br />
 
 }
 
 <p class="result-note">Results are provisional as of @DateTime.Now</p>
-
-<style>
-    .result-note {
-        font-size: 1.5em;
-        font-weight: bold;
-        text-align: center;
-    }
-</style>
 
 @code {
 
@@ -275,12 +267,17 @@ else
 
 
     //PDF
-    protected async Task ExportToPdf()
+    /*protected async Task ExportToPdf()
     {
         using (MemoryStream excelStream = ExportService.CreateSingleRacePdf(races, boatRaces))
         {
             await JS.SaveAs("Sample.pdf", excelStream.ToArray());
         }
+    }*/
+    
+    private async Task CreatePdf()
+    {
+        await JsRuntime.InvokeVoidAsync("generatePDF");
     }
 
 

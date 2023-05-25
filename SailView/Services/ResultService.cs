@@ -59,6 +59,8 @@ namespace SailView.Services
             }
         }
 
+
+
         public List<Series> SeriesList()
         {
             using (var context = _dbContextFactory.CreateDbContext())

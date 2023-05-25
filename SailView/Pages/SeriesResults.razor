@@ -7,6 +7,7 @@
 @inject IJSRuntime JSRuntime
 @inject Microsoft.JSInterop.IJSRuntime JS
 @using System.IO;
+@using System;
 @inject ExportService exportService
 @inject ResultService resultService
 @using Syncfusion.Pdf
@@ -126,6 +127,17 @@
 </SfChart>
 <br/>
 
+<p class="result-note">Results are provisional as of @DateTime.Now</p>
+
+<style>
+    .result-note {
+        font-size: 1.5em;
+        font-weight: bold;
+        text-align: center;
+    }
+</style>
+
+<br/>
 
 @*<SfPdfExport @ref="PdfExportObj" />*@
 @*<MudButton Variant="Variant.Filled" Color="MudColor.Secondary" OnClick="ExportToPdf">Export to PDF</MudButton>

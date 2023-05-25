@@ -11,7 +11,7 @@
 
 <MudTextField Label="Series name" @bind-Value="series.Name"></MudTextField>
 
-<MudTextField Label="Number of discards" @bind-Value="Discards" InputType="InputType.Number" Min="0"></MudTextField>
+<MudTextField Label="Number of discards" @bind-Value="series.Discards" InputType="InputType.Number" Min="0"></MudTextField>
 
 <MudSelect T="Races" MultiSelection SelectedValues="selectedRaces" SelectedValuesChanged="selectedRacesChanged" Label="Select Races From List">
     @foreach (var item in races.Where(HasOneBoatType))

@@ -119,17 +119,30 @@ else
     </SfChart>
     <br/>
 
-    <MudText Typo="Typo.h6">Top 3 Boats</MudText>
-    <!-- Top 3 Boats Panel -->
-    <SfGrid DataSource="@TopThreeBoats" AllowSorting="true" Height="125">
-        <GridColumns>
-            <GridColumn Field=@nameof(BoatWithRaceResultsDTO.BoatName) HeaderText="Boat Name"></GridColumn>
-            <GridColumn Field=@nameof(BoatWithRaceResultsDTO.SailNumber) HeaderText="Sail Number"></GridColumn>
-            <GridColumn Field=@nameof(BoatWithRaceResultsDTO.BoatType) HeaderText="Class"></GridColumn>
-            <GridColumn Field=@nameof(BoatWithRaceResultsDTO.FirstPlaceFinishes) HeaderText="1st Place Finishes"></GridColumn>
-        </GridColumns>
-    </SfGrid>
-    <br/>
+<MudText Typo="Typo.h6">Top 3 1720 Boats</MudText>
+<!-- Top 3 1720 Boats Panel -->
+<SfGrid DataSource="@TopThreeBoats.Where(boat => boat.BoatType == "1720").ToList()" AllowSorting="true" Height="125">
+    <GridColumns>
+        <GridColumn Field=@nameof(BoatWithRaceResultsDTO.BoatName) HeaderText="Boat Name"></GridColumn>
+        <GridColumn Field=@nameof(BoatWithRaceResultsDTO.SailNumber) HeaderText="Sail Number"></GridColumn>
+        <GridColumn Field=@nameof(BoatWithRaceResultsDTO.BoatType) HeaderText="Class"></GridColumn>
+        <GridColumn Field=@nameof(BoatWithRaceResultsDTO.FirstPlaceFinishes) HeaderText="1st Place Finishes"></GridColumn>
+    </GridColumns>
+</SfGrid>
+<br/>
+
+<MudText Typo="Typo.h6">Top 3 Sloop Boats</MudText>
+<!-- Top 3 Sloop Boats Panel -->
+<SfGrid DataSource="@TopThreeBoats.Where(boat => boat.BoatType == "Sloop").ToList()" AllowSorting="true" Height="125">
+    <GridColumns>
+        <GridColumn Field=@nameof(BoatWithRaceResultsDTO.BoatName) HeaderText="Boat Name"></GridColumn>
+        <GridColumn Field=@nameof(BoatWithRaceResultsDTO.SailNumber) HeaderText="Sail Number"></GridColumn>
+        <GridColumn Field=@nameof(BoatWithRaceResultsDTO.BoatType) HeaderText="Class"></GridColumn>
+        <GridColumn Field=@nameof(BoatWithRaceResultsDTO.FirstPlaceFinishes) HeaderText="1st Place Finishes"></GridColumn>
+    </GridColumns>
+</SfGrid>
+<br/>
+
 
     <!-- Total Boats Panel -->
 

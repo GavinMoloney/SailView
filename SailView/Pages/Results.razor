@@ -73,10 +73,10 @@
                                 <MudTypography Variant="body1">Total Elapsed Time: @TimeSpan.FromMinutes(boatWithRaceResults.Statistics.TotalElapsedTime).ToString("hh\\:mm\\:ss")</MudTypography>
                                 @* <MudTypography Variant="body1">Total Corrected Time: @TimeSpan.FromSeconds(boatWithRaceResults.Statistics.TotalCorrectedTime).ToString("hh\\:mm\\:ss")</MudTypography> *@
                                 <MudTypography Variant="body1">
-                                    Improvemed on last Race?:
+                                    Compared to previous Race:
                                     @(boatWithRaceResults.Statistics.LastTwoPositions.Count < 2 ? "N/A" :
                                         (boatWithRaceResults.Statistics.IsSame ? "Same" :
-                                            (boatWithRaceResults.Statistics.IsImprovement ? "Yes" : "No")))
+                                            (boatWithRaceResults.Statistics.IsImprovement ? "Up" : "Down")))
                                 </MudTypography>
                             </div>
                         </ChildContent>

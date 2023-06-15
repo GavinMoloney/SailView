@@ -70,13 +70,14 @@
                             </MudTable>
                             <div class="stats-container">
                                 <MudTypography Variant="body1">Best Position: @boatWithRaceResults.Statistics.BestPosition</MudTypography>
-                                <MudTypography Variant="body1">Total Elapsed Time: @TimeSpan.FromSeconds(boatWithRaceResults.Statistics.TotalElapsedTime).ToString("hh\\:mm\\:ss")</MudTypography>
+                                <MudTypography Variant="body1">Total Elapsed Time: @TimeSpan.FromMinutes(boatWithRaceResults.Statistics.TotalElapsedTime).ToString("hh\\:mm\\:ss")</MudTypography>
                                 @* <MudTypography Variant="body1">Total Corrected Time: @TimeSpan.FromSeconds(boatWithRaceResults.Statistics.TotalCorrectedTime).ToString("hh\\:mm\\:ss")</MudTypography> *@
-    <MudTypography Variant="body1">Is Improvement: 
-    @(boatWithRaceResults.Statistics.LastTwoPositions.Count < 2 ? "N/A" : 
-      (boatWithRaceResults.Statistics.IsSame ? "Same" : 
-      (boatWithRaceResults.Statistics.IsImprovement ? "Yes" : "No")))
-    </MudTypography>
+                                <MudTypography Variant="body1">
+                                    Improvemed on last Race?:
+                                    @(boatWithRaceResults.Statistics.LastTwoPositions.Count < 2 ? "N/A" :
+                                        (boatWithRaceResults.Statistics.IsSame ? "Same" :
+                                            (boatWithRaceResults.Statistics.IsImprovement ? "Yes" : "No")))
+                                </MudTypography>
                             </div>
                         </ChildContent>
                     </MudExpansionPanel>
@@ -113,7 +114,7 @@ else
         </ChartZoomSettings>
         <ChartSeriesCollection>
             <ChartSeries DataSource="@BoatsWithRaceResults" XName="BoatName" YName="Statistics.TotalElapsedTime" Type="ChartSeriesType.Column" Name="Total Elapsed Time"></ChartSeries>
-            <ChartSeries DataSource="@BoatsWithRaceResults" XName="BoatName" YName="Statistics.TotalCorrectedTime" Type="ChartSeriesType.Column" Name="Total Corrected Time"></ChartSeries>
+            @* <ChartSeries DataSource="@BoatsWithRaceResults" XName="BoatName" YName="Statistics.TotalCorrectedTime" Type="ChartSeriesType.Column" Name="Total Corrected Time"></ChartSeries> *@
         </ChartSeriesCollection>
     </SfChart>
     <br/>

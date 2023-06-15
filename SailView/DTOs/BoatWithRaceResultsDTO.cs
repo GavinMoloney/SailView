@@ -20,5 +20,9 @@ namespace SailView.DTOs
         public int BestPosition { get; set; }
         public double TotalElapsedTime { get; set; }
         public double TotalCorrectedTime { get; set; }
+        public Queue<int> LastTwoPositions { get; set; } = new Queue<int>(2);
+        public bool IsImprovement => LastTwoPositions.Count == 2 && LastTwoPositions.First() > LastTwoPositions.Last();
+        public bool IsSame => LastTwoPositions.Count == 2 && LastTwoPositions.First() == LastTwoPositions.Last();
+
     }
 }

@@ -29,7 +29,7 @@
 
 @if (BoatsWithRaceResults != null && BoatsWithRaceResults.Count > 0)
 {
-    <MudTextField @bind-Value="searchString" Placeholder="Search" Variant="Variant.Outlined" Adornment="Adornment.End" AdornmentIcon="@Icons.Material.Filled.Search" AdornmentColor="Color.Primary" @oninput="ApplySearch" />
+    <MudTextField @bind-Value="searchString" Placeholder="Search" Variant="Variant.Outlined" Adornment="Adornment.End" AdornmentIcon="@Icons.Material.Filled.Search" AdornmentColor="Color.Primary" @oninput="ApplySearch"/>
 
     <MudTable Items="@filteredBoatsWithRaceResults">
 
@@ -56,23 +56,28 @@
                                     <MudTh>Date of Race</MudTh>
                                     <MudTh>Position</MudTh>
                                     <MudTh>Elapsed Time</MudTh>
-                                    <MudTh>Corrected Time</MudTh>
+                                    @* <MudTh>Corrected Time</MudTh> *@
                                 </HeaderContent>
                                 <RowTemplate Context="raceResult">
                                     <MudTd>@raceResult.RaceDate</MudTd>
                                     <MudTd>@raceResult.Position</MudTd>
                                     <MudTd>@TimeSpan.FromSeconds(raceResult.ElapsedTime).ToString("hh\\:mm\\:ss")</MudTd>
-                                    <MudTd>@TimeSpan.FromSeconds(raceResult.CorrectedTime).ToString("hh\\:mm\\:ss")</MudTd>
+                                    @* <MudTd>@TimeSpan.FromSeconds(raceResult.CorrectedTime).ToString("hh\\:mm\\:ss")</MudTd> *@
                                 </RowTemplate>
                                 <PagerContent>
-                                    <MudTablePager />
+                                    <MudTablePager/>
                                 </PagerContent>
                             </MudTable>
-                                                  <div class="stats-container">
-                            <MudTypography Variant="body1">Best Position: @boatWithRaceResults.Statistics.BestPosition</MudTypography>
-                            <MudTypography Variant="body1">Total Elapsed Time: @TimeSpan.FromSeconds(boatWithRaceResults.Statistics.TotalElapsedTime).ToString("hh\\:mm\\:ss")</MudTypography>
-                            <MudTypography Variant="body1">Total Corrected Time: @TimeSpan.FromSeconds(boatWithRaceResults.Statistics.TotalCorrectedTime).ToString("hh\\:mm\\:ss")</MudTypography>
-                      </div>
+                            <div class="stats-container">
+                                <MudTypography Variant="body1">Best Position: @boatWithRaceResults.Statistics.BestPosition</MudTypography>
+                                <MudTypography Variant="body1">Total Elapsed Time: @TimeSpan.FromSeconds(boatWithRaceResults.Statistics.TotalElapsedTime).ToString("hh\\:mm\\:ss")</MudTypography>
+                                @* <MudTypography Variant="body1">Total Corrected Time: @TimeSpan.FromSeconds(boatWithRaceResults.Statistics.TotalCorrectedTime).ToString("hh\\:mm\\:ss")</MudTypography> *@
+    <MudTypography Variant="body1">Is Improvement: 
+    @(boatWithRaceResults.Statistics.LastTwoPositions.Count < 2 ? "N/A" : 
+      (boatWithRaceResults.Statistics.IsSame ? "Same" : 
+      (boatWithRaceResults.Statistics.IsImprovement ? "Yes" : "No")))
+    </MudTypography>
+                            </div>
                         </ChildContent>
                     </MudExpansionPanel>
                 }
@@ -83,7 +88,7 @@
             </MudTd>
         </RowTemplate>
         <PagerContent>
-            <MudTablePager />
+            <MudTablePager/>
         </PagerContent>
     </MudTable>
 }
@@ -93,52 +98,51 @@ else
 }
 
 
-
 <MudPaper Class="pa-16 ma-2">
-<!-- Total Sailing Time Panel -->
+    <!-- Total Sailing Time Panel -->
     <MudText Typo="Typo.h6">Total Sailing Time</MudText>
-<SfChart Title="Total Sailing Time">
-    <ChartPrimaryXAxis ValueType="Syncfusion.Blazor.Charts.ValueType.Category" Title="Boat Name">
-        <ScrollSettings HorizontalOffset="100" VerticalOffset="50">
-    </ScrollSettings>
-    </ChartPrimaryXAxis>
-    <ChartPrimaryYAxis Title="Time (minutes)"></ChartPrimaryYAxis>
+    <SfChart Title="Total Sailing Time">
+        <ChartPrimaryXAxis ValueType="Syncfusion.Blazor.Charts.ValueType.Category" Title="Boat Name">
+            <ScrollSettings HorizontalOffset="100" VerticalOffset="50">
+            </ScrollSettings>
+        </ChartPrimaryXAxis>
+        <ChartPrimaryYAxis Title="Time (minutes)"></ChartPrimaryYAxis>
         <ChartTooltipSettings Enable="true"></ChartTooltipSettings>
         <ChartZoomSettings EnableSelectionZooming="true" EnablePinchZooming="true" EnableMouseWheelZooming="true" EnableScrollbar="true"
                            Mode="Syncfusion.Blazor.Charts.ZoomMode.X">
         </ChartZoomSettings>
-    <ChartSeriesCollection>
-        <ChartSeries DataSource="@BoatsWithRaceResults" XName="BoatName" YName="Statistics.TotalElapsedTime" Type="ChartSeriesType.Column" Name="Total Elapsed Time"></ChartSeries>
-        <ChartSeries DataSource="@BoatsWithRaceResults" XName="BoatName" YName="Statistics.TotalCorrectedTime" Type="ChartSeriesType.Column" Name="Total Corrected Time"></ChartSeries>
-    </ChartSeriesCollection>
-</SfChart>
-<br/>
+        <ChartSeriesCollection>
+            <ChartSeries DataSource="@BoatsWithRaceResults" XName="BoatName" YName="Statistics.TotalElapsedTime" Type="ChartSeriesType.Column" Name="Total Elapsed Time"></ChartSeries>
+            <ChartSeries DataSource="@BoatsWithRaceResults" XName="BoatName" YName="Statistics.TotalCorrectedTime" Type="ChartSeriesType.Column" Name="Total Corrected Time"></ChartSeries>
+        </ChartSeriesCollection>
+    </SfChart>
+    <br/>
 
     <MudText Typo="Typo.h6">Top 3 Boats</MudText>
-<!-- Top 3 Boats Panel -->
-<SfGrid DataSource="@TopThreeBoats" AllowSorting="true" Height="125">
-    <GridColumns>
-        <GridColumn Field=@nameof(BoatWithRaceResultsDTO.BoatName) HeaderText="Boat Name"></GridColumn>
-        <GridColumn Field=@nameof(BoatWithRaceResultsDTO.SailNumber) HeaderText="Sail Number"></GridColumn>
-        <GridColumn Field=@nameof(BoatWithRaceResultsDTO.BoatType) HeaderText="Class"></GridColumn>
-        <GridColumn Field=@nameof(BoatWithRaceResultsDTO.FirstPlaceFinishes) HeaderText="1st Place Finishes"></GridColumn>
-    </GridColumns>
-</SfGrid>
-<br/>
+    <!-- Top 3 Boats Panel -->
+    <SfGrid DataSource="@TopThreeBoats" AllowSorting="true" Height="125">
+        <GridColumns>
+            <GridColumn Field=@nameof(BoatWithRaceResultsDTO.BoatName) HeaderText="Boat Name"></GridColumn>
+            <GridColumn Field=@nameof(BoatWithRaceResultsDTO.SailNumber) HeaderText="Sail Number"></GridColumn>
+            <GridColumn Field=@nameof(BoatWithRaceResultsDTO.BoatType) HeaderText="Class"></GridColumn>
+            <GridColumn Field=@nameof(BoatWithRaceResultsDTO.FirstPlaceFinishes) HeaderText="1st Place Finishes"></GridColumn>
+        </GridColumns>
+    </SfGrid>
+    <br/>
 
-<!-- Total Boats Panel -->
+    <!-- Total Boats Panel -->
 
     <MudText Typo="Typo.h6">Total Boats</MudText>
     <SfChart Title="@($"Total Number of Boats: {TotalBoats}")">
 
-    <ChartPrimaryXAxis ValueType="Syncfusion.Blazor.Charts.ValueType.Category" Title="Boat Type"></ChartPrimaryXAxis>
-    <ChartPrimaryYAxis Title="Count"></ChartPrimaryYAxis>
+        <ChartPrimaryXAxis ValueType="Syncfusion.Blazor.Charts.ValueType.Category" Title="Boat Type"></ChartPrimaryXAxis>
+        <ChartPrimaryYAxis Title="Count"></ChartPrimaryYAxis>
         <ChartTooltipSettings Enable="true"></ChartTooltipSettings>
-    <ChartSeriesCollection>
-        <ChartSeries DataSource="@BoatTypeCounts" XName="BoatType" YName="Count" Type="ChartSeriesType.Column" Name="Total Boats">
-        </ChartSeries>
-    </ChartSeriesCollection>
-</SfChart>
+        <ChartSeriesCollection>
+            <ChartSeries DataSource="@BoatTypeCounts" XName="BoatType" YName="Count" Type="ChartSeriesType.Column" Name="Total Boats">
+            </ChartSeries>
+        </ChartSeriesCollection>
+    </SfChart>
 </MudPaper>
 
 
@@ -165,7 +169,7 @@ else
             boat.Statistics = CalculateBoatStatistics(boat, boat.RaceResults);
         }
 
-        //navigation from boats.razor
+    //navigation from boats.razor
         var uri = navigationManager.ToAbsoluteUri(navigationManager.Uri);
         if (QueryHelpers.ParseQuery(uri.Query).TryGetValue("boatName", out var boatName))
         {
@@ -173,7 +177,6 @@ else
         }
 
         CalculateBoatTypeCounts();
-
     }
 
     private BoatStatistics CalculateBoatStatistics(BoatWithRaceResultsDTO boat, List<SailView.Data.Models.RaceResults> raceResults)
@@ -186,6 +189,12 @@ else
             stats.TotalElapsedTime = raceResults.Sum(r => r.ElapsedTime) / 60;
             stats.TotalCorrectedTime = raceResults.Sum(r => r.CorrectedTime) / 60;
             boat.FirstPlaceFinishes = raceResults.Count(r => r.Position == 1);
+            foreach (var result in raceResults.OrderBy(r => r.RaceDate))
+            {
+                if (stats.LastTwoPositions.Count == 2)
+                    stats.LastTwoPositions.Dequeue();
+                stats.LastTwoPositions.Enqueue(result.Position);
+            }
         }
 
         return stats;
@@ -219,11 +228,11 @@ else
     private void CalculateBoatTypeCounts()
     {
         BoatTypeCounts = BoatsWithRaceResults.GroupBy(b => b.BoatType)
-                            .Select(g => new BoatTypeCount
-                                {
-                                    BoatType = g.Key,
-                                    Count = g.Count()
-                                }).ToList();
+            .Select(g => new BoatTypeCount
+            {
+                BoatType = g.Key,
+                Count = g.Count()
+            }).ToList();
         TotalBoats = BoatTypeCounts.Sum(b => b.Count);
     }
 

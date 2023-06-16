@@ -29,7 +29,7 @@
     }
 </MudSelect>
 
-<MudTable Items="@BreakTiesForResults(resultDTOs)" Hover="true" Breakpoint="Breakpoint.Sm">
+<MudTable Items="@resultDTOs" Hover="true" Breakpoint="Breakpoint.Sm">
     <HeaderContent>
         <MudTh>Finishing Position</MudTh>
         <MudTh>Boat Name</MudTh>
@@ -192,6 +192,7 @@
                 Scores = g.Where(c => c.BoatRace.FinishingStatus == "Finished")
                     .OrderBy(c => c.RaceDate)
                     .Select(c => c.BoatRace.Position)
+                    .OrderBy(c => c)
                     .ToList()
             }).ToList();
 
@@ -238,6 +239,15 @@ private List<ResultDTO> BreakTiesForResults(List<ResultDTO> sortedResults)
                     else if (sortedResults[i].Scores[j] > sortedResults[i - 1].Scores[j])
                     {
                         Console.WriteLine($"Boat {i - 1} won the tie-breaker for race {j + 1} under rule A8.2");
+                        break;
+                    }
+    // If the current race is a tie, but the next one isn't, swap the order.
+                    else if (j > 0 && sortedResults[i].Scores[j - 1] != sortedResults[i - 1].Scores[j - 1])
+                    {
+                        if (sortedResults[i].Scores[j - 1] < sortedResults[i - 1].Scores[j - 1])
+                        {
+                            Swap(sortedResults, i, i - 1);
+                        }
                         break;
                     }
                 }

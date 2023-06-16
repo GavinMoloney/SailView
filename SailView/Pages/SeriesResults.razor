@@ -206,74 +206,69 @@
                     .OrderBy(c => c)
                     .ToList()
             }).ToList();
+        
+    // Sort scores in decreasing order for each boat
+        resultDTOs.ForEach(r => r.Scores.Sort((a, b) => b.CompareTo(a)));
 
         resultDTOs = BreakTiesForResults(resultDTOs);
         UpdateAverages();
     }
 
 
-private List<ResultDTO> BreakTiesForResults(List<ResultDTO> sortedResults)
-{
-    Console.WriteLine("Entering BreakTiesForResults method");
-
-    for (int i = 1; i < sortedResults.Count; i++)
+    private List<ResultDTO> BreakTiesForResults(List<ResultDTO> sortedResults)
     {
-        Console.WriteLine($"Points for Boat {i}: {sortedResults[i].Points}, Points for Boat {i-1}: {sortedResults[i-1].Points}");
-        if (sortedResults[i].Points == sortedResults[i - 1].Points)
-        {
-            // Apply rule A8.1
-            for (int j = 0; j < sortedResults[i].Scores.Count; j++)
-            {
-                Console.WriteLine($"Comparing scores for race {j + 1}: Boat {i} - {sortedResults[i].Scores[j]} vs. Boat {i - 1} - {sortedResults[i - 1].Scores[j]}");
-                if (sortedResults[i].Scores[j] < sortedResults[i - 1].Scores[j])
-                {
-                    Console.WriteLine($"Boat {i} won the tie-breaker for race {j + 1}");
-                    Swap(sortedResults, i, i - 1);
-                    break;
-                }
-                else if (sortedResults[i].Scores[j] > sortedResults[i - 1].Scores[j])
-                {
-                    Console.WriteLine($"Boat {i - 1} won the tie-breaker for race {j + 1}");
-                    break;
-                }
-            }
+        Console.WriteLine("Entering BreakTiesForResults method");
 
-            // If rule A8.1 didn't break the tie, apply rule A8.2
+        for (int i = 1; i < sortedResults.Count; i++)
+        {
+            Console.WriteLine($"Points for Boat {i}: {sortedResults[i].Points}, Points for Boat {i-1}: {sortedResults[i-1].Points}");
             if (sortedResults[i].Points == sortedResults[i - 1].Points)
             {
-                for (int j = sortedResults[i].Scores.Count - 1; j >= 0; j--)
+    // Rule A8.1
+                int j = 0;
+                while (j < sortedResults[i].Scores.Count && sortedResults[i].Scores[j] == sortedResults[i - 1].Scores[j])
                 {
-                    Console.WriteLine($"Applying rule A8.2 for race {j + 1}: Boat {i} - {sortedResults[i].Scores[j]} vs. Boat {i - 1} - {sortedResults[i - 1].Scores[j]}");
-                    if (sortedResults[i].Scores[j] < sortedResults[i - 1].Scores[j])
+                    j++;
+                }
+
+                if (j < sortedResults[i].Scores.Count)
+                {
+                    if (sortedResults[i].Scores[j] > sortedResults[i - 1].Scores[j])
                     {
-                        Console.WriteLine($"Boat {i} won the tie-breaker for race {j + 1} under rule A8.2");
+                        Console.WriteLine($"Boat {i} won the tie-breaker for race {j + 1}");
                         Swap(sortedResults, i, i - 1);
-                        break;
                     }
-                    else if (sortedResults[i].Scores[j] > sortedResults[i - 1].Scores[j])
+                    else
                     {
-                        Console.WriteLine($"Boat {i - 1} won the tie-breaker for race {j + 1} under rule A8.2");
-                        break;
+                        Console.WriteLine($"Boat {i - 1} won the tie-breaker for race {j + 1}");
                     }
-    // If the current race is a tie, but the next one isn't, swap the order.
-                    else if (j > 0 && sortedResults[i].Scores[j - 1] != sortedResults[i - 1].Scores[j - 1])
+                }
+                else
+                {
+    // Rule A8.2
+                    for (j = sortedResults[i].Scores.Count - 1; j >= 0; j--)
                     {
-                        if (sortedResults[i].Scores[j - 1] < sortedResults[i - 1].Scores[j - 1])
+                        if (sortedResults[i].Scores[j] > sortedResults[i - 1].Scores[j])
                         {
+                            Console.WriteLine($"Boat {i} won the tie-breaker for race {j + 1} under rule A8.2");
                             Swap(sortedResults, i, i - 1);
+                            break;
                         }
-                        break;
+                        else if (sortedResults[i].Scores[j] < sortedResults[i - 1].Scores[j])
+                        {
+                            Console.WriteLine($"Boat {i - 1} won the tie-breaker for race {j + 1} under rule A8.2");
+                            break;
+                        }
                     }
                 }
             }
         }
+
+        return sortedResults;
     }
 
-    return sortedResults;
-}
 
-
-
+    
 
     private void Swap(List<ResultDTO> list, int index1, int index2)
     {

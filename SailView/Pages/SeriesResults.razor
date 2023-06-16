@@ -48,7 +48,7 @@
             <MudTd DataLabel="Name">@context.Name</MudTd>
             <MudTd DataLabel="Sail Number">@context.SailNumber</MudTd>
         <MudTd DataLabel="Class">@context.BoatType</MudTd>
-         <MudTd DataLabel="Helm">@context.HelmName</MudTd> 
+         <MudTd DataLabel="Helm">@context.HelmName</MudTd>
             <MudTd DataLabel="TotalRaceTime">@context.TotalRaceTime</MudTd>
             <MudTd DataLabel="Points">@context.Points</MudTd>
 
@@ -182,7 +182,7 @@
             .SelectMany(x => x.BoatRaces)
             .GroupBy(x => x.BoatDetails)
             .Count();
-        
+
             //create list
         resultDTOs = selectedSeries.Races.SelectMany(x => x.BoatRaces.Select(br => new { BoatRace = br, RaceDate = x.CreatedDate }))
             .GroupBy(x => x.BoatRace.BoatDetails)
@@ -391,7 +391,7 @@ private List<ResultDTO> BreakTiesForResults(List<ResultDTO> sortedResults)
             return sortedResults[middleIndex].TotalRaceTime.TotalMinutes;
         }
     }
-    
+
 
     private async Task ExportToPdf()
     {

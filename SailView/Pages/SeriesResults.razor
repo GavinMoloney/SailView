@@ -29,11 +29,14 @@
 
     }
 </MudSelect>
+
+<button @onclick="TestSwap">Test Swap Method</button>
 <br/>
 <p class="result-note">Results are provisional as of @DateTime.Now</p>
 <br/>
 
-<MudTable Items="@resultDTOs" Hover="true" Breakpoint="Breakpoint.Sm">
+<MudTable Items="@BreakTiesForResults(resultDTOs)" Hover="true" Breakpoint="Breakpoint.Sm">
+
     <HeaderContent>
         <MudTh>Finishing Position</MudTh>
         <MudTh>Boat Name</MudTh>
@@ -170,6 +173,7 @@
     protected override void OnInitialized()
     {
         series = resultService.SeriesList();
+        
     }
 
     protected void selectedChanged(Series selectedSeries)
@@ -182,7 +186,7 @@
             .SelectMany(x => x.BoatRaces)
             .GroupBy(x => x.BoatDetails)
             .Count();
-
+        
             //create list
         resultDTOs = selectedSeries.Races.SelectMany(x => x.BoatRaces.Select(br => new { BoatRace = br, RaceDate = x.CreatedDate }))
             .GroupBy(x => x.BoatRace.BoatDetails)
@@ -210,8 +214,11 @@
 
 private List<ResultDTO> BreakTiesForResults(List<ResultDTO> sortedResults)
 {
+    Console.WriteLine("Entering BreakTiesForResults method");
+
     for (int i = 1; i < sortedResults.Count; i++)
     {
+        Console.WriteLine($"Points for Boat {i}: {sortedResults[i].Points}, Points for Boat {i-1}: {sortedResults[i-1].Points}");
         if (sortedResults[i].Points == sortedResults[i - 1].Points)
         {
             // Apply rule A8.1
@@ -454,6 +461,34 @@ private List<ResultDTO> BreakTiesForResults(List<ResultDTO> sortedResults)
         //var dataUrl = $"data:application/pdf;base64,{base64String}";
         // Download the file
         await JSRuntime.InvokeVoidAsync("downloadFile", fileName);
+    }
+    private void TestSwap()
+    {
+    // Initialize the list
+        List<ResultDTO> list = new List<ResultDTO>
+        {
+            new ResultDTO { Points = 7, Scores = new List<int> { 3, 4 } },
+            new ResultDTO { Points = 4, Scores = new List<int> { 1, 2 } }
+        };
+
+        Console.WriteLine("Before swap:");
+        PrintList(list);
+
+    // Call the Swap method
+        Swap(list, 0, 1);
+
+        Console.WriteLine("After swap:");
+        PrintList(list);
+    }
+
+
+
+    private void PrintList(List<ResultDTO> list)
+    {
+        for (int i = 0; i < list.Count; i++)
+        {
+            Console.WriteLine($"Item {i}: Points - {list[i].Points}, Scores - {string.Join(", ", list[i].Scores)}");
+        }
     }
 
 

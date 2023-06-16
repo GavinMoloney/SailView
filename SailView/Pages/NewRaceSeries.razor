@@ -11,6 +11,8 @@
 
 <MudTextField Label="Series name" @bind-Value="series.Name"></MudTextField>
 
+<MudTextField Label="Number of discards" @bind-Value="series.Discards" InputType="InputType.Number" Min="0"></MudTextField>
+
 <MudSelect T="Races" MultiSelection SelectedValues="selectedRaces" SelectedValuesChanged="selectedRacesChanged" Label="Select Races From List">
     @foreach (var item in races.Where(HasOneBoatType))
     {
@@ -18,15 +20,16 @@
     }
 </MudSelect>
 
-
 <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="CreateSeries">Create</MudButton>
 <MudButton Variant="Variant.Filled" Color="Color.Default" Href="seriesresults">Cancel</MudButton>
+
 
 @code {
     private string seriesName;
     private Series series = new Series();
     private List<Races> races = new List<Races>();
     private List<Races> selectedRaces = new List<Races>();
+    public int Discards { get; set; }
 
     protected override void OnInitialized()
     {

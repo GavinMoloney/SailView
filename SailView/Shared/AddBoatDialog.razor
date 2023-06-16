@@ -9,11 +9,11 @@
 <h3>Select Boat</h3>
 
 <EditForm Model="boatDetails" OnValidSubmit="AddBoatDetails" OnInvalidSubmit="FieldsErrorNotifacation">
-    <DataAnnotationsValidator />
+    <DataAnnotationsValidator/>
     <MudDialog Style="width:800px;max-width:800px;background-color:#F3F3F4;">
         <TitleContent>
             <MudText Typo="Typo.h6" Class="mb-2">
-                <MudIcon Icon="@Icons.Filled.AddBox" Class="mr-3" />
+                <MudIcon Icon="@Icons.Filled.AddBox" Class="mr-3"/>
                 Select Boat
             </MudText>
         </TitleContent>
@@ -22,32 +22,35 @@
                 <MudItem xs="12">
                     <MudCard Outlined="false" Style="height:100%;border-radius:20px;" Class="px-10" Elevation="0">
                         <MudCardContent>
-                        <MudSelect @bind-Value="boatDetails.BoatName" For="()=>boatDetails.BoatName" Margin="Margin.Dense" Label="Boat Name" Placeholder="Please Select" Variant="Variant.Outlined" Immediate AdornmentColor="Color.Primary">
-                            @foreach (var boat in boatService.GetAllBoats().OrderBy(b => b.BoatName))
-                            {
-                                <MudSelectItem Value="@boat.BoatName">@boat.BoatName</MudSelectItem>
-                                
-                            }
-                       </MudSelect>
-                           <MudSelect @bind-Value="boatDetails.BoatType" For="()=>boatDetails.BoatType" Margin="Margin.Dense" Label="Type of Boat" Placeholder="Please Select" Variant="Variant.Outlined" Immediate AdornmentColor="Color.Primary">
+                            <MudSelect @bind-Value="boatDetails.BoatName" For="() => boatDetails.BoatName" Margin="Margin.Dense" Label="Boat Name" Placeholder="Please Select" Variant="Variant.Outlined" Immediate AdornmentColor="Color.Primary">
+                                @foreach (var boat in boatService.GetAllBoats().OrderBy(b => b.BoatName))
+                                {
+                                    <MudSelectItem Value="@boat.BoatName">@boat.BoatName</MudSelectItem>
+                                }
+                            </MudSelect>
+                            <MudSelect @bind-Value="boatDetails.BoatType" For="() => boatDetails.BoatType" Margin="Margin.Dense" Label="Type of Boat" Placeholder="Please Select" Variant="Variant.Outlined" Immediate AdornmentColor="Color.Primary">
                                 <MudSelectItem Value="@("1720")">1720</MudSelectItem>
                                 <MudSelectItem Value="@("Sloop")">Sloop</MudSelectItem>
                             </MudSelect>
-                            <!--<MudTextField @bind-Value="boatDetails.BoatType" For="()=>boatDetails.BoatType" Margin="Margin.Dense" Label="Boat Type" Variant="Variant.Outlined" Immediate></MudTextField>-->
-                            <MudTextField @bind-Value="boatDetails.SailNumber" For="()=>boatDetails.SailNumber" Margin="Margin.Dense" Label="Sail Number" Variant="Variant.Outlined" Immediate></MudTextField>
-                            <MudNumericField @bind-Value="boatDetails.Position" For="()=>boatDetails.Position" Margin="Margin.Dense" Label="Finishing Position" Variant="Variant.Outlined" Min="0" Immediate></MudNumericField>
-                            <MudTextField @bind-Value="boatDetails.HelmName" For="()=>boatDetails.HelmName" Margin="Margin.Dense" Label="Helm Name" Variant="Variant.Outlined"></MudTextField>
-                        <MudTextField @bind-Value="boatDetails.TimingRecord" For="()=>boatDetails.TimingRecord" Margin="Margin.Dense" Label="Finishing Time" Variant="Variant.Outlined"></MudTextField>
-                        <!--<MudTextField @bind-Value="boatDetails.FinishingStatus" For="()=>boatDetails.FinishingStatus" Margin="Margin.Dense" Label="Finishing Status" Variant="Variant.Outlined"></MudTextField>-->
-                        <MudSelect @bind-Value="boatDetails.FinishingStatus" For="()=>boatDetails.FinishingStatus" Margin="Margin.Dense" Label="Status" Placeholder="Please Select" Variant="Variant.Outlined" Immediate AdornmentColor="Color.Primary">
-                            <MudSelectItem Value="@("Finished")">Finished</MudSelectItem>
-                            <MudSelectItem Value="@("DNF")">DNF</MudSelectItem>
-                            <MudSelectItem Value="@("OCS")">OCS</MudSelectItem>
-                            <MudSelectItem Value="@("DNS")">DNS</MudSelectItem>
-                            <MudSelectItem Value="@("DNC")">DNC</MudSelectItem>
-                            <MudSelectItem Value="@("RTD")">RTD</MudSelectItem>
-                        </MudSelect>
-                            </MudCardContent>
+                            <!--<MudTextField @bind-Value="boatDetails.BoatType" For="() => boatDetails.BoatType" Margin="Margin.Dense" Label="Boat Type" Variant="Variant.Outlined" Immediate></MudTextField>-->
+                            <MudTextField @bind-Value="boatDetails.SailNumber" For="() => boatDetails.SailNumber" Margin="Margin.Dense" Label="Sail Number" Variant="Variant.Outlined" Immediate></MudTextField>
+                            <MudNumericField @bind-Value="boatDetails.Position" For="() => boatDetails.Position" Margin="Margin.Dense" Label="Finishing Position" Variant="Variant.Outlined" Min="0" Immediate></MudNumericField>
+                            <MudTextField @bind-Value="boatDetails.HelmName" For="() => boatDetails.HelmName" Margin="Margin.Dense" Label="Helm Name" Variant="Variant.Outlined"></MudTextField>
+                            <MudTextField @bind-Value="boatDetails.TimingRecord" For="() => boatDetails.TimingRecord" Margin="Margin.Dense" Label="Finishing Time" Variant="Variant.Outlined"></MudTextField>
+                            <!--<MudTextField @bind-Value="boatDetails.FinishingStatus" For="() => boatDetails.FinishingStatus" Margin="Margin.Dense" Label="Finishing Status" Variant="Variant.Outlined"></MudTextField>-->
+                            <MudSelect @bind-Value="boatDetails.FinishingStatus" For="() => boatDetails.FinishingStatus" Margin="Margin.Dense" Label="Status" Placeholder="Please Select" Variant="Variant.Outlined" Immediate AdornmentColor="Color.Primary">
+                                <MudSelectItem Value="@("Finished")">Finished</MudSelectItem>
+                                <MudSelectItem Value="@("BFD")">BFD</MudSelectItem>
+                                <MudSelectItem Value="@("DNC")">DNC</MudSelectItem>
+                                <MudSelectItem Value="@("DNE")">DNE</MudSelectItem>
+                                <MudSelectItem Value="@("DNF")">DNF</MudSelectItem>
+                                <MudSelectItem Value="@("DNS")">DNS</MudSelectItem>
+                                <MudSelectItem Value="@("DSQ")">DSQ</MudSelectItem>
+                                <MudSelectItem Value="@("OCS")">OCS</MudSelectItem>
+                                <MudSelectItem Value="@("RTD")">RTD</MudSelectItem>
+                                <MudSelectItem Value="@("UFD")">UFD</MudSelectItem>
+                            </MudSelect>
+                        </MudCardContent>
                     </MudCard>
                 </MudItem>
             </MudGrid>
@@ -62,14 +65,16 @@
 
     //private List<BoatDetails>? boats;
     public BoatRaceDTO boatDetails { get; set; } = new();
-    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+
+    [CascadingParameter]
+    MudDialogInstance MudDialog { get; set; }
+
     private EditContext editContext;
 
     protected override async Task OnInitializedAsync()
     {
-        //boats = await Task.Run(() => boatService.GetAllBoats());
+    //boats = await Task.Run(() => boatService.GetAllBoats());
         editContext = new EditContext(boatDetails);
-
     }
 
     private async void AddBoatDetails()
@@ -81,6 +86,7 @@
     {
         MudDialog.Cancel();
     }
+
     private void FieldsErrorNotifacation()
     {
         SnackBar.Add("All Fields Must Be Entered Correctly!", Severity.Error);

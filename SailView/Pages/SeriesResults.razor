@@ -30,7 +30,7 @@
     }
 </MudSelect>
 
-<button @onclick="TestSwap">Test Swap Method</button>
+@* <button @onclick="TestSwap">Test Swap Method</button> *@
 <br/>
 <p class="result-note">Results are provisional as of @DateTime.Now</p>
 <br/>
@@ -221,61 +221,79 @@
 
         for (int i = 1; i < sortedResults.Count; i++)
         {
-            Console.WriteLine($"Points for Boat {i}: {sortedResults[i].Points}, Points for Boat {i-1}: {sortedResults[i-1].Points}");
-            if (sortedResults[i].Points == sortedResults[i - 1].Points)
-            {
-    // Rule A8.1
-                int j = 0;
-                while (j < sortedResults[i].Scores.Count && sortedResults[i].Scores[j] == sortedResults[i - 1].Scores[j])
-                {
-                    j++;
-                }
+            ResultDTO key = sortedResults[i];
+            int j = i - 1;
 
-                if (j < sortedResults[i].Scores.Count)
-                {
-                    if (sortedResults[i].Scores[j] > sortedResults[i - 1].Scores[j])
-                    {
-                        Console.WriteLine($"Boat {i} won the tie-breaker for race {j + 1}");
-                        Swap(sortedResults, i, i - 1);
-                    }
-                    else
-                    {
-                        Console.WriteLine($"Boat {i - 1} won the tie-breaker for race {j + 1}");
-                    }
-                }
-                else
-                {
-    // Rule A8.2
-                    for (j = sortedResults[i].Scores.Count - 1; j >= 0; j--)
-                    {
-                        if (sortedResults[i].Scores[j] > sortedResults[i - 1].Scores[j])
-                        {
-                            Console.WriteLine($"Boat {i} won the tie-breaker for race {j + 1} under rule A8.2");
-                            Swap(sortedResults, i, i - 1);
-                            break;
-                        }
-                        else if (sortedResults[i].Scores[j] < sortedResults[i - 1].Scores[j])
-                        {
-                            Console.WriteLine($"Boat {i - 1} won the tie-breaker for race {j + 1} under rule A8.2");
-                            break;
-                        }
-                    }
-                }
+    // Move elements of sortedResults[0..i-1], that are
+    // greater than key, to one position ahead
+    // of their current position
+            while (j >= 0 && ShouldSwap(sortedResults[j], key))
+            {
+                sortedResults[j + 1] = sortedResults[j];
+                j--;
             }
+            sortedResults[j + 1] = key;
         }
 
         return sortedResults;
     }
 
+    private bool ShouldSwap(ResultDTO r1, ResultDTO r2)
+    {
+        Console.WriteLine($"Points for Boat {r2.HelmName}: {r2.Points}, Points for Boat {r1.HelmName}: {r1.Points}");
+        if (r1.Points != r2.Points) return false;
+
+        int i = 0;
+        while (i < r1.Scores.Count && r1.Scores[i] == r2.Scores[i])
+        {
+            i++;
+        }
+
+        if (i == r1.Scores.Count)
+        {
+    // Apply Rule A8.2
+            for (i = r1.Scores.Count - 1; i >= 0; i--)
+            {
+                if (r2.Scores[i] > r1.Scores[i])
+                {
+                    Console.WriteLine($"Boat {r2.HelmName} won the tie-breaker for race {i + 1} under rule A8.2");
+                    return true;
+                }
+                else if (r2.Scores[i] < r1.Scores[i])
+                {
+                    Console.WriteLine($"Boat {r1.HelmName} won the tie-breaker for race {i + 1} under rule A8.2");
+                    return false;
+                }
+            }
+        }
+        else
+        {
+    // Apply Rule A8.1
+            if (r2.Scores[i] > r1.Scores[i])
+            {
+                Console.WriteLine($"Boat {r2.HelmName} won the tie-breaker for race {i + 1}");
+                return true;
+            }
+            else
+            {
+                Console.WriteLine($"Boat {r1.HelmName} won the tie-breaker for race {i + 1}");
+                return false;
+            }
+        }
+
+        return false; // The boats are completely equal
+    }
+
+
 
     
 
-    private void Swap(List<ResultDTO> list, int index1, int index2)
+    /*private void Swap(List<ResultDTO> list, int index1, int index2)
     {
         ResultDTO tempResult = list[index1];
         list[index1] = list[index2];
         list[index2] = tempResult;
-    }
+    }*/
 
 
     private List<BoatPoints> BreakTiesForBoatPoints(List<BoatPoints> sortedBoatPoints)
@@ -457,7 +475,7 @@
         // Download the file
         await JSRuntime.InvokeVoidAsync("downloadFile", fileName);
     }
-    private void TestSwap()
+    /*private void TestSwap()
     {
     // Initialize the list
         List<ResultDTO> list = new List<ResultDTO>
@@ -474,7 +492,7 @@
 
         Console.WriteLine("After swap:");
         PrintList(list);
-    }
+    }*/
 
 
 

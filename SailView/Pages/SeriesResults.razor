@@ -154,7 +154,7 @@
         <MudTd DataLabel="Helm">@context.HelmName</MudTd>
         @foreach (var score in @context.Scores)
         {
-            <MudTd>@score</MudTd>
+            <MudTd>@score @((score == numberOfBoatsInRace + 1) ? "PEN" : "")</MudTd>
         }
         <MudTd>@context.Points</MudTd>
     </RowTemplate>
@@ -170,6 +170,7 @@
 
 @code {
     int numRaces;
+    private int numberOfBoatsInRace;
     private int _currentRowIndex = 0;
     private int _currentRowIndex2 = 0;
     private List<Series> series = new List<Series>();
@@ -209,7 +210,7 @@
         resultDTOs = new List<ResultDTO>();
 
     //calc num of unique boats in a series
-        int numberOfBoatsInRace = selectedSeries.Races
+        numberOfBoatsInRace = selectedSeries.Races
             .SelectMany(x => x.BoatRaces)
             .GroupBy(x => x.BoatDetails)
             .Count();

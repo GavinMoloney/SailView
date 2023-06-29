@@ -21,6 +21,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Azure.Core" Version="1.33.0" />
+    <PackageReference Include="Azure.Identity" Version="1.9.0" />
     <PackageReference Include="Blazor.Geolocation" Version="7.0.3" />
     <PackageReference Include="BrowserInterop" Version="1.1.2" />
     <PackageReference Include="Chart.js" Version="3.7.1" />

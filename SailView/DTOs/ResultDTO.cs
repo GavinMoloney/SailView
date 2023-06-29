@@ -6,6 +6,7 @@
         public string? Name { get; set; }
         public int Points { get; set; }
         public TimeSpan TotalRaceTime { get; set; }
+        public TimeSpan UnofficialTime { get; set; }
         public string? SailNumber { get; set; }
         public string? BoatType { get; set; }
         public string HelmName { get; set; }

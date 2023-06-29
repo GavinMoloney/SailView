@@ -44,23 +44,25 @@
         <MudTh>Boat Class</MudTh>
         <MudTh>Helm</MudTh>
         <MudTh>Total Race Time</MudTh>
-<MudTh><MudTableSortLabel InitialDirection="SortDirection.Ascending" SortBy="new Func<ResultDTO, object>(x=>x.Points)">Points</MudTableSortLabel></MudTh>
+        <MudTh>
+            <MudTableSortLabel InitialDirection="SortDirection.Ascending" SortBy="new Func<ResultDTO, object>(x => x.Points)">Points</MudTableSortLabel>
+        </MudTh>
     </HeaderContent>
     <RowTemplate>
         <MudTd DataLabel="Position">@(++_currentRowIndex)</MudTd>
-            <MudTd DataLabel="Name">@context.Name</MudTd>
-            <MudTd DataLabel="Sail Number">@context.SailNumber</MudTd>
+        <MudTd DataLabel="Name">@context.Name</MudTd>
+        <MudTd DataLabel="Sail Number">@context.SailNumber</MudTd>
         <MudTd DataLabel="Class">@context.BoatType</MudTd>
-         <MudTd DataLabel="Helm">@context.HelmName</MudTd>
-            <MudTd DataLabel="TotalRaceTime">@context.TotalRaceTime</MudTd>
-            <MudTd DataLabel="Points">@context.Points</MudTd>
+        <MudTd DataLabel="Helm">@context.HelmName</MudTd>
+        <MudTd DataLabel="TotalRaceTime">@context.TotalRaceTime</MudTd>
+        <MudTd DataLabel="Points">@context.Points</MudTd>
 
-        </RowTemplate>
-        <PagerContent>
-            <MudTablePager />
-        </PagerContent>
-    </MudTable>
-    <br/>
+    </RowTemplate>
+    <PagerContent>
+        <MudTablePager/>
+    </PagerContent>
+</MudTable>
+<br/>
 
     <SfChart Title="Points">
         <ChartPrimaryXAxis ValueType="Syncfusion.Blazor.Charts.ValueType.Category" Title="Boat Name"></ChartPrimaryXAxis>
@@ -128,9 +130,43 @@
                     <ChartDataLabel Visible="true"></ChartDataLabel>
                 </ChartMarker>
             </ChartSeries>
+            
+            @*<ChartSeries DataSource="@boatPointsData.OrderByDescending(cd => cd.UnofficialTimeMinutes)" XName="BoatName" YName="UnofficialTimeMinutes" Type="ChartSeriesType.Bar">
+                <ChartMarker>
+                    <ChartDataLabel Visible="true"></ChartDataLabel>
+                </ChartMarker>
+            </ChartSeries>*@
         }
     </ChartSeriesCollection>
 </SfChart>
+
+@*<SfChart>
+    <ChartPrimaryXAxis ValueType="Syncfusion.Blazor.Charts.ValueType.Category" Title="Boat Name"></ChartPrimaryXAxis>
+    <ChartPrimaryYAxis Title="Total Race Time (minutes)"></ChartPrimaryYAxis>
+    <ChartTooltipSettings Enable="true"></ChartTooltipSettings>
+    <ChartLegendSettings Visible="true"></ChartLegendSettings>
+    <ChartZoomSettings EnableSelectionZooming="true" EnablePinchZooming="true" EnableMouseWheelZooming="true" EnableScrollbar="true"
+                       Mode="Syncfusion.Blazor.Charts.ZoomMode.X">
+    </ChartZoomSettings>
+    <ChartSeriesCollection>
+        @if (resultDTOs != null && resultDTOs.Count > 0)
+        {
+            var boatPointsData = GetBoatPointsData(resultDTOs);
+            <ChartSeries DataSource="@boatPointsData.OrderByDescending(cd => cd.TotalRaceTimeMinutes)" XName="BoatName" YName="TotalRaceTimeMinutes" Type="ChartSeriesType.StackingBar">
+                <ChartMarker>
+                    <ChartDataLabel Visible="true"></ChartDataLabel>
+                </ChartMarker>
+            </ChartSeries>
+
+            <ChartSeries DataSource="@boatPointsData.OrderByDescending(cd => cd.UnofficialTimeMinutes)" XName="BoatName" YName="UnofficialTimeMinutes" Type="ChartSeriesType.StackingBar">
+                <ChartMarker>
+                    <ChartDataLabel Visible="true"></ChartDataLabel>
+                </ChartMarker>
+            </ChartSeries>
+        }
+    </ChartSeriesCollection>
+</SfChart>*@
+
 <br/>
 
 
@@ -178,6 +214,7 @@
 
     protected void selectedChanged(Series selectedSeries)
     {
+        _currentRowIndex = 0;
         this.selectedSeries = selectedSeries;
         resultDTOs = new List<ResultDTO>();
 
@@ -197,6 +234,7 @@
                 Points = g.Sum(c => c.BoatRace.FinishingStatus == "Finished" ? c.BoatRace.Position : numberOfBoatsInRace + 1),
     //total race time
                 TotalRaceTime = g.Where(c => c.BoatRace.FinishingStatus == "Finished").Aggregate(TimeSpan.Zero, (total, next) => total + next.BoatRace.TimingRecord),
+                UnofficialTime = g.Where(c => c.BoatRace.FinishingStatus != "Finished").Aggregate(TimeSpan.Zero, (total, next) => total + next.BoatRace.TimingRecord),
                 SailNumber = g.Key.SailNumber,
                 BoatType = g.Key.BoatType,
                 HelmName = string.Join(" & ", g.Select(br => br.BoatRace.HelmName).Distinct()),

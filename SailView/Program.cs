@@ -48,9 +48,18 @@ builder.Services.Configure<CookiePolicyOptions>(options =>
 
 
 // Add services to the container.
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+var defaultConnectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+var sailAppDbContextConnectionString = builder.Configuration.GetConnectionString("SailAppDbContextConnection");
+
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(connectionString));
+    options.UseSqlServer(defaultConnectionString));
+
+builder.Services.AddDbContextFactory<SailAppDbContext>((_, options) =>
+    options.UseSqlServer(sailAppDbContextConnectionString));
+
+
+
+
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
     .AddEntityFrameworkStores<ApplicationDbContext>();
@@ -62,8 +71,7 @@ builder.Services.AddTransient<BoatService>();
 builder.Services.AddTransient<RaceService>();
 builder.Services.AddTransient<ResultService>();
 builder.Services.AddTransient<BoatResultService>();
-builder.Services.AddDbContextFactory<SailAppDbContext>((DbContextOptionsBuilder options) =>
-    options.UseSqlServer(connectionString));
+
 builder.Services.AddHttpClient();
 builder.Services.AddMudServices();
 builder.Services.AddSyncfusionBlazor();

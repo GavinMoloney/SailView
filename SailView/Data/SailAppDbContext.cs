@@ -14,10 +14,10 @@ namespace SailView.Data
         public DbSet<Series> Series { get; set; }
         public DbSet<RaceResults> RaceResults { get; set; }
 
-        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        /*protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             optionsBuilder.UseSqlServer("Server=localhost,1433;Database=sql_server;User Id=sa;Password=Corneli*s2023");
-        }
+        }*/
 
         // one entry needed to be hardcoded for connection to db to work    
         /*

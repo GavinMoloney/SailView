@@ -30,8 +30,8 @@
     @if (TideData != null)
     {
         <SfChart Title="Tide Chart">
-            <ChartPrimaryXAxis ValueType="Syncfusion.Blazor.Charts.ValueType.Category" LabelFormat="dd/MM, HH:mm"></ChartPrimaryXAxis>
-                        <ChartPrimaryYAxis>
+            <ChartPrimaryXAxis Title="Date" ValueType="Syncfusion.Blazor.Charts.ValueType.Category" LabelFormat="dd/MM, HH:mm"></ChartPrimaryXAxis>
+                        <ChartPrimaryYAxis Title="Height">
                     <ChartAxisAnnotations>
             <ChartAxisAnnotation Content="0" Y="0" CoordinateUnit="CoordinateUnit.Axis">
                 <ChartAxisAnnotationLineStyle Width="2" Color="red"></ChartAxisAnnotationLineStyle>

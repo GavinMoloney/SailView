@@ -18,7 +18,7 @@ namespace SailView.Services
         {
             try
             {
-                var apiUrl = $"https://www.worldtides.info/api/v3?heights&extremes&key={ApiKey}&lat={lat}&lon={lon}";
+                var apiUrl = $"https://www.worldtides.info/api/v3?heights&extremes&localtime&key={ApiKey}&lat={lat}&lon={lon}";
                 var response = await _httpClient.GetAsync(apiUrl);
 
                 if (response.IsSuccessStatusCode)
@@ -46,6 +46,10 @@ namespace SailView.Services
 
         [JsonProperty("extremes")]
         public List<TideStation> Extremes { get; set; }
+        
+        // This will capture the timezone information from the API response
+        [JsonProperty("timezone")]
+        public string TimeZone { get; set; }
     }
 
     public class TideStation
@@ -56,10 +60,17 @@ namespace SailView.Services
         [JsonProperty("height")]
         public double Height { get; set; }
 
-        [JsonProperty("dt")]
+        /*[JsonProperty("dt")]
         public long Timestamp { get; set; }
 
-        public DateTime Date => DateTimeOffset.FromUnixTimeSeconds(Timestamp).ToLocalTime().DateTime;
+        public DateTime Date => DateTimeOffset.FromUnixTimeSeconds(Timestamp).ToLocalTime().DateTime;*/
+        
+        // This will capture the date-time string from the API response
+        [JsonProperty("date")]
+        public string DateString { get; set; }
+
+        // This will convert the date-time string to a DateTime object
+        public DateTime Date => DateTime.Parse(DateString, null, System.Globalization.DateTimeStyles.RoundtripKind);
     }
 
 }

@@ -66,7 +66,7 @@
             
             <div class="carousel-item">
     <SfChart Title="Wind Direction Forecast">
-        <ChartPrimaryXAxis Title="Date" ValueType="Syncfusion.Blazor.Charts.ValueType.Category"></ChartPrimaryXAxis>
+        <ChartPrimaryXAxis Title="Date" ValueType="Syncfusion.Blazor.Charts.ValueType.DateTime" LabelFormat="dddd HH:mm"></ChartPrimaryXAxis>
         <ChartPrimaryYAxis Title="Wind Direction (degrees)"></ChartPrimaryYAxis>
         <ChartSeriesCollection>
             <ChartSeries DataSource="@WindDirectionChartDataList" Name="Wind Direction" XName="DateTime" YName="WindDirection" Type="ChartSeriesType.Polar">

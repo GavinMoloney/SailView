@@ -70,7 +70,7 @@ namespace SailView.Services
         public string DateString { get; set; }
 
         // This will convert the date-time string to a DateTime object
-        public DateTime Date => DateTime.Parse(DateString, null, System.Globalization.DateTimeStyles.RoundtripKind);
+        public DateTime Date => DateTime.Parse(DateString, null, System.Globalization.DateTimeStyles.RoundtripKind).AddHours(1);
     }
 
 }

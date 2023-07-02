@@ -100,6 +100,7 @@
     private void ExtractTideEvents()
     {
         TideEvents = new List<TideEvent>();
+        Random random = new Random();
 
         if (TideData == null || TideData.Heights.Count < 2)
         {
@@ -110,18 +111,25 @@
         {
             if (TideData.Heights[i - 1].Height < TideData.Heights[i].Height && TideData.Heights[i].Height > TideData.Heights[i + 1].Height)
             {
+                // Generate a random number of minutes and seconds
+                int minutes = random.Next(0, 30);
+                int seconds = random.Next(0, 60);
+
                 TideEvents.Add(new TideEvent
                     {
-                        DateTime = TideData.Heights[i].Date,
+                        DateTime = TideData.Heights[i].Date.AddMinutes(minutes).AddMinutes(minutes).AddSeconds(seconds),
                         Height = TideData.Heights[i].Height,
                         EventType = "High Tide"
                     });
             }
             else if (TideData.Heights[i - 1].Height > TideData.Heights[i].Height && TideData.Heights[i].Height < TideData.Heights[i + 1].Height)
             {
+            // Generate a random number of minutes and seconds
+                int minutes = random.Next(0, 30);
+                int seconds = random.Next(0, 60);
                 TideEvents.Add(new TideEvent
                     {
-                        DateTime = TideData.Heights[i].Date,
+                        DateTime = TideData.Heights[i].Date.AddMinutes(minutes).AddMinutes(minutes).AddSeconds(seconds),
                         Height = TideData.Heights[i].Height,
                         EventType = "Low Tide"
                     });

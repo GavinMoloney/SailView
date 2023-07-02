@@ -30,7 +30,11 @@
     @if (TideData != null)
     {
         <SfChart Title="Tide Chart">
-            <ChartPrimaryXAxis Title="Date" ValueType="Syncfusion.Blazor.Charts.ValueType.DateTime" LabelFormat="dddd HH:mm"></ChartPrimaryXAxis>
+            <ChartPrimaryXAxis Title="Date" ValueType="Syncfusion.Blazor.Charts.ValueType.DateTime" LabelFormat="dddd HH:mm">
+                        <ChartStriplines>
+                            <ChartStripline Start="@DateTime.Now" End="@DateTime.Now.AddMinutes(1)" Color="red" Visible="true"/>
+                        </ChartStriplines>
+            </ChartPrimaryXAxis>
             <ChartPrimaryYAxis Title="Height">
                 <ChartStriplines>
                     <ChartStripline Start="-0.01" End="0.01" Color="black"/>
@@ -160,7 +164,25 @@
             LocationStatus = $"Error: {ex.Message}";
         }
     }
+    private Timer _timer;
 
+    protected override void OnInitialized()
+    {
+        _timer = new Timer(UpdateCurrentTimeStripline, null, TimeSpan.Zero, TimeSpan.FromMinutes(1));
+    }
+
+    private void UpdateCurrentTimeStripline(object state)
+    {
+        InvokeAsync(() =>
+        {
+            StateHasChanged();
+        });
+    }
+    
+    public void Dispose()
+    {
+        _timer?.Dispose();
+    }
 
 
 

@@ -32,7 +32,7 @@
         <SfChart Title="Tide Chart">
             <ChartPrimaryXAxis Title="Date" ValueType="Syncfusion.Blazor.Charts.ValueType.DateTime" LabelFormat="dddd HH:mm">
                         <ChartStriplines>
-                            <ChartStripline Start="@DateTime.Now" End="@DateTime.Now.AddMinutes(1)" Color="red" Visible="true"/>
+                            <ChartStripline Start="@DateTime.Now.AddHours(1)" End="@DateTime.Now.AddHours(1).AddMinutes(1)" Color="red" Visible="true"/>
                         </ChartStriplines>
             </ChartPrimaryXAxis>
             <ChartPrimaryYAxis Title="Height">
@@ -87,9 +87,7 @@
             ExtractTideEvents();
         }
     }
-
-
-
+    
     public class TideEvent
     {
         public DateTime DateTime { get; set; }
